@@ -1,0 +1,3 @@
+[submodule "src/Utopia.Demystifier"]
+	path = src/Utopia.Demystifier
+	url = https://github.com/mingmoe/Utopia.Demystifier
