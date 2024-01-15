@@ -12,7 +12,7 @@ namespace Utopia.Core.Translation;
 /// </summary>
 public class TranslationManager : ITranslationManager
 {
-    private List<ITranslationProvider> _providers = [];
+    private readonly List<ITranslationProvider> _providers = [];
 
     private readonly object _lock = new();
 

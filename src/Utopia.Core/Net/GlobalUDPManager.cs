@@ -127,10 +127,8 @@ public class GlobalUDPManager
             {
                 try
                 {
-                    using var buffer = MemoryPool<byte>.Shared.Rent(256);
+                    using var buffer = MemoryPool<byte>.Shared.Rent(2048);
                     var result = await udp.ReceiveFromAsync(buffer.Memory, allAddress);
-
-                    // Debugger.Break();
 
                     var remote = ToStandardPoint(result.RemoteEndPoint);
 

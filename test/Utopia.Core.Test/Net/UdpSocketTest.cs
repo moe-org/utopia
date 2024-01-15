@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 namespace Utopia.Core.Test.Net;
 public class UdpSocketTest
 {
-    private (
+    public static (
         (Socket,IPEndPoint local, IPEndPoint remote),
         (Socket,IPEndPoint local, IPEndPoint remote)) Create()
     {
@@ -35,7 +35,7 @@ public class UdpSocketTest
             new IPEndPoint(IPAddress.Loopback, 456)));
     }
 
-    private async Task<(UDPSocket, UDPSocket)> GetSockets()
+    public static (UDPSocket, UDPSocket) GetSockets()
     {
         var (client, server) = Create();
 
@@ -48,32 +48,34 @@ public class UdpSocketTest
     }
 
     [Fact]
-    public async void UdpTest()
+    public async void UdpWriteAndReadTest()
     {
-        var (sender, receiver) = await GetSockets();
+        var (sender, receiver) = GetSockets();
 
         Assert.True(sender.Alive);
         Assert.True(receiver.Alive);
 
         Thread.Sleep(100);
 
-        await sender.Write((byte[])[1, 1, 4]);
-        await sender.Write((byte[])[5, 1, 4]);
+        var sent = new byte[1024];
+        Array.Clear(sent);
+
+        await sender.Write(sent);
 
         Thread.Sleep(100);
 
         // read
-        MemoryStream memoryStream = new(6);
-        byte[] buffer = new byte[6];
+        MemoryStream memoryStream = new(sent.Length);
+        byte[] buffer = new byte[sent.Length];
 
-        while(memoryStream.Length != 6)
+        while(memoryStream.Length != sent.Length)
         {
             var got = await receiver.Read(buffer);
 
             memoryStream.Write(buffer,0, got);
         }
 
-        Assert.Equal([1,1,4,5,1,4],memoryStream.ToArray());
+        Assert.Equal(sent, memoryStream.ToArray());
 
         // check
         receiver.Shutdown();

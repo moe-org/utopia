@@ -33,7 +33,7 @@ public class TcpSocketTest
     }
 
     [Fact]
-    public async void TcpTest()
+    public async void TcpWriteAndReadTest()
     {
         var (sender, receiver) = GetSockets();
 

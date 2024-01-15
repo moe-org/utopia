@@ -6,6 +6,7 @@ using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
@@ -95,10 +96,11 @@ public class UDPSocket : ISocket
             return 0;
         }
 
-        var reader = ReceivePipe.Reader;
-        var result = await reader.ReadAsync();
+        Debugger.Break();
 
-        if(result.IsCanceled || result.IsCompleted)
+        var reader = ReceivePipe.Reader;
+
+        if(!reader.TryRead(out ReadResult result))
         {
             return 0;
         }

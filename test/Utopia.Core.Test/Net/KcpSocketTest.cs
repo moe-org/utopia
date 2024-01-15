@@ -14,7 +14,7 @@ namespace Utopia.Core.Test.Net;
 public class KcpSocketTest
 {
     [Fact]
-    public async Task KcpTest()
+    public async Task KcpWriteAndReadTest()
     {
         var (client, server) = PipeSocket.Create();
 

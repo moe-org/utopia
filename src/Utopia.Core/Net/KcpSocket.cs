@@ -86,7 +86,7 @@ public sealed class KcpSocket : ISocket, IKcpCallback
 
         CheckError();
 
-        // receive is not thread-safe
+        // receive is **not** thread-safe
         bool locked = false;
         try
         {
@@ -236,7 +236,6 @@ public sealed class KcpSocket : ISocket, IKcpCallback
             _updateLoopCancellationTokenSource.Cancel();
             _socket.Shutdown();
             _socket.Dispose();
-            _updateLoopCancellationTokenSource.Dispose();
         }
 
         Alive = false;

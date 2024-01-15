@@ -11,7 +11,7 @@ using Utopia.Core.Net;
 
 namespace Utopia.Core.Test.Net;
 
-public class FakeSocketTest
+public class PipeSocketTest
 {
     [Fact]
     public async void FakeSocketTransmitTest()
