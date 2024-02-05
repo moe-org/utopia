@@ -1,24 +1,13 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
+#endregion
+
 namespace Utopia.Core.Test;
+
 public class XmlGuuidTest
 {
-
-    public class GuuidInXml
-    {
-        [XmlElement]
-        public XmlGuuid id = new(new("root", "test"));
-    }
-
     [Fact]
     public void XmlGuuidSerializeAndDeserializeTest()
     {
@@ -28,10 +17,15 @@ public class XmlGuuidTest
         MemoryStream stream = new();
         serializer.Serialize(stream, clazz);
 
-        stream = new(stream.ToArray());
+        stream = new MemoryStream(stream.ToArray());
 
         var got = serializer.Deserialize<GuuidInXml>(stream);
 
         Assert.Equal(clazz.id.Guuid, got.id.Guuid);
+    }
+
+    public class GuuidInXml
+    {
+        [XmlElement] public XmlGuuid id = new(new Guuid("root", "test"));
     }
 }

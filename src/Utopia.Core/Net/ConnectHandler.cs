@@ -1,6 +1,4 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
 using System.Buffers;
 using System.IO.Pipelines;
@@ -8,13 +6,39 @@ using System.Net;
 using System.Text;
 using Autofac;
 using CommunityToolkit.Diagnostics;
-using CommunityToolkit.HighPerformance;
 using Microsoft.Extensions.Logging;
+
+#endregion
 
 namespace Utopia.Core.Net;
 
 public class ConnectHandler : IConnectHandler
 {
+    private readonly WeakThreadSafeEventSource<Exception?> _event = new();
+
+    private readonly object _lock = new();
+
+    private readonly Pipe _pipe = new();
+
+    private readonly ISocket _socket;
+
+    private volatile bool _disposed;
+
+    /// <summary>
+    ///     once true,never false
+    /// </summary>
+    private volatile bool _eventFired;
+
+    public ConnectHandler(ISocket socket)
+    {
+        Guard.IsNotNull(socket);
+        this._socket = socket;
+
+        if (!this._socket.Alive) throw new ArgumentException("the socket haven't connect yet");
+
+        Task.Run(this.InputLoop);
+    }
+
     public required ILogger<ConnectHandler> Logger { protected get; init; }
 
     public required ILifetimeScope Container { get; init; }
@@ -23,97 +47,96 @@ public class ConnectHandler : IConnectHandler
 
     public IPacketizer Packetizer { get; } = new Packetizer();
 
-    private readonly WeakThreadSafeEventSource<Exception?> _event = new();
-
     public event Action<Exception?> ConnectionClosed
     {
-        add
+        add => this._event.Register(value);
+        remove => this._event.Unregister(value);
+    }
+
+    public bool Running => this.isRunning();
+
+    public void WritePacket(Guuid packetTypeId, object obj)
+    {
+        var data = this.Packetizer.WritePacket(packetTypeId, obj);
+
+        lock (this._lock)
         {
-            _event.Register(value);
-        }
-        remove
-        {
-            _event.Unregister(value);
+            var encoderedId = Encoding.UTF8.GetBytes(packetTypeId.ToString());
+
+            // 转换到网络端序
+            var length = BitConverter.GetBytes(
+                IPAddress.HostToNetworkOrder(data.Length)
+            );
+
+            var idLength = BitConverter.GetBytes(
+                IPAddress.HostToNetworkOrder(encoderedId.Length)
+            );
+
+            this._socket.Write(length);
+            this._socket.Write(idLength);
+            this._socket.Write(encoderedId);
+            this._socket.Write(data);
         }
     }
 
-    /// <summary>
-    /// once true,never false
-    /// </summary>
-    private volatile bool _eventFired = false;
+    public void Disconnect()
+    {
+        this.Dispose();
+    }
 
-    private volatile bool _disposed = false;
-
-    private readonly object _lock = new();
-
-    private readonly ISocket _socket;
-
-    private readonly Pipe _pipe = new();
-
-    public bool Running => isRunning();
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     /// <summary>
-    /// Call under the lock <see cref="_lock"/>
+    ///     Call under the lock <see cref="_lock" />
     /// </summary>
     /// <param name="exception"></param>
     private void FireEvent(Exception? exception)
     {
-        lock (_lock)
+        lock (this._lock)
         {
-            if (_eventFired) return;
-            _eventFired = true;
+            if (this._eventFired) return;
+            this._eventFired = true;
 
             // no error
-            var ex = _event.Fire(exception, true);
+            var ex = this._event.Fire(exception, true);
 
-            foreach (var e in ex)
-            {
-                Logger.LogError(e, "get an error when firing ConnectionClosed event");
-            }
+            foreach (var e in ex) this.Logger.LogError(e, "get an error when firing ConnectionClosed event");
         }
     }
 
     private bool isRunning()
     {
-        return !_disposed;
-    }
-
-    public ConnectHandler(ISocket socket)
-    {
-        Guard.IsNotNull(socket);
-        _socket = socket;
-
-        if (!_socket.Alive)
-        {
-            throw new ArgumentException("the socket haven't connect yet");
-        }
-
-        Task.Run(InputLoop);
+        return !this._disposed;
     }
 
     private async Task _ReadLoop()
     {
-        PipeWriter writer = _pipe.Writer;
+        var writer = this._pipe.Writer;
 
         // true for continue
-        while (isRunning())
+        while (this.isRunning())
         {
-            Memory<byte> memory = writer.GetMemory(256);
+            var memory = writer.GetMemory(256);
 
-            int bytesRead = await _socket.Read(memory);
+            var bytesRead = await this._socket.Read(memory);
 
             writer.Advance(bytesRead);
 
             await writer.FlushAsync();
             await Task.Yield();
         }
+
         await writer.CompleteAsync();
     }
 
     private async Task _ProcessLoop()
     {
-        PipeReader reader = _pipe.Reader;
-        byte[] fourBytesBuf = new byte[4];
+        var reader = this._pipe.Reader;
+        var fourBytesBuf = new byte[4];
 
         // return null for socket disconnect
         async Task<int?> readInt()
@@ -124,22 +147,17 @@ public class ConnectHandler : IConnectHandler
                 got = await reader.ReadAtLeastAsync(4);
 
                 if (!got.IsCompleted && !got.IsCanceled)
-                {
                     // read all
                     break;
-                }
 
-                if (!isRunning())
-                {
-                    return null;
-                }
+                if (!this.isRunning()) return null;
             }
 
-            ReadOnlySequence<byte> buf = got.Buffer.Slice(0, 4);
+            var buf = got.Buffer.Slice(0, 4);
 
             buf.CopyTo(fourBytesBuf);
 
-            int num = BitConverter.ToInt32(fourBytesBuf);
+            var num = BitConverter.ToInt32(fourBytesBuf);
             // 从网络端序转换过来
             num = IPAddress.NetworkToHostOrder(num);
 
@@ -148,21 +166,18 @@ public class ConnectHandler : IConnectHandler
             return num;
         }
 
-        while (isRunning())
+        while (this.isRunning())
         {
             // check we have packet to read
             var hasPacket = await readInt();
 
-            if (!hasPacket.HasValue)
-            {
-                break;
-            }
+            if (!hasPacket.HasValue) break;
 
-            int length = hasPacket.Value;
-            int strLength = (await readInt()).Value;
+            var length = hasPacket.Value;
+            var strLength = (await readInt()).Value;
 
             // read id
-            ReadResult got = await reader.ReadAtLeastAsync(strLength);
+            var got = await reader.ReadAtLeastAsync(strLength);
 
             var id = Guuid.Parse(Encoding.UTF8.GetString(got.Buffer.Slice(0, strLength)));
 
@@ -170,7 +185,7 @@ public class ConnectHandler : IConnectHandler
             // read packet
             got = await reader.ReadAtLeastAsync(length);
 
-            object packet = Packetizer.ConvertPacket(id, got.Buffer.Slice(0, length));
+            var packet = this.Packetizer.ConvertPacket(id, got.Buffer.Slice(0, length));
 
             reader.AdvanceTo(got.Buffer.GetPosition(length));
             // release packet
@@ -178,16 +193,13 @@ public class ConnectHandler : IConnectHandler
             {
                 try
                 {
-                    var handled = await Dispatcher.DispatchPacket(id, packet);
+                    var handled = await this.Dispatcher.DispatchPacket(id, packet);
 
-                    if (!handled)
-                    {
-                        Logger.LogWarning("Packet with id {} has no handler", id);
-                    }
+                    if (!handled) this.Logger.LogWarning("Packet with id {} has no handler", id);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    Logger.LogError(ex,"Error when handle packet {}", id);
+                    this.Logger.LogError(ex, "Error when handle packet {}", id);
                 }
             }).Start();
         }
@@ -196,16 +208,13 @@ public class ConnectHandler : IConnectHandler
     private async Task InputLoop()
     {
         // wait for shutdown sign
-        var one = _ReadLoop();
-        var two = _ProcessLoop();
+        var one = this._ReadLoop();
+        var two = this._ProcessLoop();
         Task all = Task.WhenAny(one, two);
 
-        while (isRunning())
+        while (this.isRunning())
         {
-            if (all.IsCompleted)
-            {
-                break;
-            }
+            if (all.IsCompleted) break;
             await Task.Yield();
         }
 
@@ -213,69 +222,30 @@ public class ConnectHandler : IConnectHandler
         {
             Task.WaitAll(one, two);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            Logger.LogError(e, "Socket Connection Error");
+            this.Logger.LogError(e, "Socket Connection Error");
 
             // fire event
-            FireEvent(e);
+            this.FireEvent(e);
         }
 
         // fire event
-        FireEvent(null);
+        this.FireEvent(null);
         // shutdown
-        Disconnect();
-    }
-
-    public void WritePacket(Guuid packetTypeId, object obj)
-    {
-        var data = Packetizer.WritePacket(packetTypeId, obj);
-
-        lock (_lock)
-        {
-            byte[] encoderedId = Encoding.UTF8.GetBytes(packetTypeId.ToString());
-
-            // 转换到网络端序
-            byte[] length = BitConverter.GetBytes(
-                    IPAddress.HostToNetworkOrder(data.Length)
-                );
-
-            byte[] idLength = BitConverter.GetBytes(
-                    IPAddress.HostToNetworkOrder(encoderedId.Length)
-                );
-
-            _socket.Write(length);
-            _socket.Write(idLength);
-            _socket.Write(encoderedId);
-            _socket.Write(data);
-        }
-    }
-
-    public void Disconnect()
-    {
-        Dispose();
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        this.Disconnect();
     }
 
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed)
-        {
-            return;
-        }
+        if (this._disposed) return;
 
         if (disposing)
         {
-            _socket.Shutdown();
-            _socket.Dispose();
+            this._socket.Shutdown();
+            this._socket.Dispose();
         }
 
-        _disposed = true;
+        this._disposed = true;
     }
 }
-

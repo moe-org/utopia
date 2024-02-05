@@ -1,179 +1,217 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
 using System.Diagnostics.CodeAnalysis;
-using MessagePack;
-
+using MemoryPack;
 using Coordinate = int;
 using WorldId = Utopia.Core.Guuid;
+
+#endregion
 
 namespace Utopia.Core.Map;
 
 /// <summary>
-/// 平面位置
+///     平面位置
 /// </summary>
-[MessagePackObject]
-public readonly struct FlatPosition
+[MemoryPackable]
+public readonly partial struct FlatPosition
 {
-    [Key(0)]
     public readonly Coordinate X;
-    [Key(1)]
+
     public readonly Coordinate Y;
 
     public FlatPosition(Coordinate x, Coordinate y)
     {
-        X = x;
-        Y = y;
+        this.X = x;
+        this.Y = y;
     }
 
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
-        if(obj is FlatPosition position)
-        {
-            return position.X == X && position.Y == Y;
-        }
+        if (obj is FlatPosition position) return position.X == this.X && position.Y == this.Y;
         return false;
     }
+    
+    public static bool operator ==(FlatPosition lhs, FlatPosition rhs)
+    {
+        return lhs.Equals(rhs);
+    }
 
+    public static bool operator !=(FlatPosition lhs, FlatPosition rhs)
+    {
+        return !lhs.Equals(rhs);
+    }
+    
     public override int GetHashCode()
     {
-        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode());
+        return HashCode.Combine(this.X.GetHashCode(), this.Y.GetHashCode());
     }
 
     public override string ToString()
     {
-        return string.Format("({0},{1})",X,Y);
+        return string.Format("({0},{1})", this.X, this.Y);
     }
 }
 
 /// <summary>
 /// 三维位置
 /// </summary>
-[MessagePackObject]
-public readonly struct Position
+[MemoryPackable]
+public readonly partial struct Position
 {
-    [Key(0)]
     public readonly Coordinate X;
-    [Key(1)]
+
     public readonly Coordinate Y;
-    [Key(2)]
+
     public readonly Coordinate Z;
 
     public Position(Coordinate x, Coordinate y, Coordinate z)
     {
-        X = x;
-        Y = y;
-        Z = z;
+        this.X = x;
+        this.Y = y;
+        this.Z = z;
     }
 
-    public FlatPosition ToFlat() => new(X, Y);
+    public FlatPosition ToFlat()
+    {
+        return new FlatPosition(this.X, this.Y);
+    }
 
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
-        if (obj is Position position)
-        {
-            return position.X == X && position.Y == Y && position.Z == Z;
-        }
+        if (obj is Position position) return position.X == this.X && position.Y == this.Y && position.Z == this.Z;
         return false;
+    }
+    
+    public static bool operator ==(Position lhs, Position rhs)
+    {
+        return lhs.Equals(rhs);
+    }
+
+    public static bool operator !=(Position lhs, Position rhs)
+    {
+        return !lhs.Equals(rhs);
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode(),Z.GetHashCode());
+        return HashCode.Combine(this.X.GetHashCode(), this.Y.GetHashCode(), this.Z.GetHashCode());
     }
 
     public override string ToString()
     {
-        return string.Format("({0},{1},{2})", X, Y, Z);
+        return string.Format("({0},{1},{2})", this.X, this.Y, this.Z);
     }
 }
 
 /// <summary>
-/// 世界位置
+///     世界位置
 /// </summary>
-[MessagePackObject]
-public readonly struct WorldPosition
+[MemoryPackable]
+public readonly partial struct WorldPosition
 {
-    [Key(0)]
     public readonly Coordinate X;
-    [Key(1)]
+
     public readonly Coordinate Y;
-    [Key(2)]
+
     public readonly Coordinate Z;
+
     /// <summary>
-    /// stand for the World ID
+    ///     stand for the World ID
     /// </summary>
-    [Key(3)]
     public readonly WorldId Id;
 
     public WorldPosition(Coordinate x, Coordinate y, Coordinate z, WorldId id)
     {
-        X = x;
-        Y = y;
-        Z = z;
-        Id = id;
+        this.X = x;
+        this.Y = y;
+        this.Z = z;
+        this.Id = id;
     }
 
-    public FlatPosition ToFlat() => new(X, Y);
+    public FlatPosition ToFlat()
+    {
+        return new FlatPosition(this.X, this.Y);
+    }
 
-    public Position ToPos() => new(X, Y, Z);
+    public Position ToPos()
+    {
+        return new Position(this.X, this.Y, this.Z);
+    }
 
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
         if (obj is WorldPosition position)
-        {
-            return position.X == X && position.Y == Y && position.Z == Z && position.Id == Id;
-        }
+            return position.X == this.X && position.Y == this.Y && position.Z == this.Z && position.Id == this.Id;
         return false;
+    }
+    
+    public static bool operator ==(WorldPosition lhs, WorldPosition rhs)
+    {
+        return lhs.Equals(rhs);
+    }
+
+    public static bool operator !=(WorldPosition lhs, WorldPosition rhs)
+    {
+        return !lhs.Equals(rhs);
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode(), Z.GetHashCode(),Id.GetHashCode());
+        return HashCode.Combine(this.X.GetHashCode(), this.Y.GetHashCode(), this.Z.GetHashCode(),
+            this.Id.GetHashCode());
     }
 
     public override string ToString()
     {
-        return string.Format("({0},{1},{2})(World Id:{3})", X, Y, Z, Id);
+        return string.Format("({0},{1},{2})(World Id:{3})", this.X, this.Y, this.Z, this.Id);
     }
 }
 
-[MessagePackObject]
-public readonly struct FlatPositionWithId
+[MemoryPackable]
+public readonly partial struct FlatPositionWithId
 {
-    [Key(0)]
     public readonly Coordinate X;
-    [Key(1)]
+
     public readonly Coordinate Y;
-    [Key(2)]
+
     public readonly WorldId Id;
 
     public FlatPositionWithId(Coordinate x, Coordinate y, WorldId id)
     {
-        X = x;
-        Y = y;
-        Id = id;
+        this.X = x;
+        this.Y = y;
+        this.Id = id;
     }
 
-    public FlatPosition ToFlat() => new(X, Y);
+    public FlatPosition ToFlat()
+    {
+        return new FlatPosition(this.X, this.Y);
+    }
 
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
         if (obj is FlatPositionWithId position)
-        {
-            return position.X == X && position.Y == Y && position.Id == Id;
-        }
+            return position.X == this.X && position.Y == this.Y && position.Id == this.Id;
         return false;
+    }
+    
+    public static bool operator ==(FlatPositionWithId lhs, FlatPositionWithId rhs)
+    {
+        return lhs.Equals(rhs);
+    }
+
+    public static bool operator !=(FlatPositionWithId lhs, FlatPositionWithId rhs)
+    {
+        return !lhs.Equals(rhs);
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(X.GetHashCode(), Y.GetHashCode(), Id.GetHashCode());
+        return HashCode.Combine(this.X.GetHashCode(), this.Y.GetHashCode(), this.Id.GetHashCode());
     }
 
     public override string ToString()
     {
-        return string.Format("({0},{1})(World Id:{2})", X, Y, Id);
+        return string.Format("({0},{1})(World Id:{2})", this.X, this.Y, this.Id);
     }
 }

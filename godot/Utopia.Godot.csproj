@@ -1,0 +1,12 @@
+<Project Sdk="Godot.NET.Sdk/4.2.1">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+      <Nullable>enable</Nullable>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Utopia.Core/Utopia.Core.csproj"/>
+    </ItemGroup>
+    
+</Project>

@@ -1,119 +1,104 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
-using System;
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
+
+#endregion
 
 namespace Utopia.Core.Net;
 
 /// <summary>
-/// 这个类负责管理应用层面的UDP链接.
+///     这个类负责管理应用层面的UDP链接.
 /// </summary>
 public class GlobalUDPManager
 {
-    public required ILogger<GlobalUDPManager> Logger { private get; init; }
-
-    public GlobalUDPManager()
-    {
-        Task.Run(MapMaintainer);
-    }
-
-    private SpinLock _spinLock = new();
+    private readonly ConcurrentDictionary<string, bool> _maintainerStarted = [];
 
     private readonly List<UDPSocket> _sockets = [];
 
-    private readonly ConcurrentDictionary<string, bool> _maintainerStarted = [];
+    private SpinLock _spinLock;
+
+    public GlobalUDPManager()
+    {
+        Task.Run(this.MapMaintainer);
+    }
+
+    public required ILogger<GlobalUDPManager> Logger { private get; init; }
 
     private UDPSocket[] GetSockets()
     {
-        bool lockTaken = false;
+        var lockTaken = false;
         UDPSocket[] sockets;
         try
         {
-            _spinLock.Enter(ref lockTaken);
-            sockets = _sockets.ToArray();
+            this._spinLock.Enter(ref lockTaken);
+            sockets = this._sockets.ToArray();
         }
         finally
         {
-            if (lockTaken)
-            {
-                _spinLock.Exit();
-            }
+            if (lockTaken) this._spinLock.Exit();
         }
+
         return sockets;
     }
 
     private void RemoveSocket(UDPSocket socket)
     {
-        bool lockTaken = false;
+        var lockTaken = false;
         try
         {
-            _spinLock.Enter(ref lockTaken);
-            _sockets.Remove(socket);
+            this._spinLock.Enter(ref lockTaken);
+            this._sockets.Remove(socket);
         }
         finally
         {
-            if (lockTaken)
-            {
-                _spinLock.Exit();
-            }
+            if (lockTaken) this._spinLock.Exit();
         }
     }
 
     private void AddSocket(UDPSocket socket)
     {
-        bool lockTaken = false;
+        var lockTaken = false;
         try
         {
-            _spinLock.Enter(ref lockTaken);
-            _sockets.Add(socket);
+            this._spinLock.Enter(ref lockTaken);
+            this._sockets.Add(socket);
         }
         finally
         {
-            if (lockTaken)
-            {
-                _spinLock.Exit();
-            }
+            if (lockTaken) this._spinLock.Exit();
         }
     }
 
+    /// <summary>
+    ///     负责对not Alive的sockets进行清空.
+    /// </summary>
     private async Task MapMaintainer()
     {
         while (true)
-        {
             try
             {
-                foreach (var socket in GetSockets())
-                {
+                foreach (var socket in this.GetSockets())
                     if (!socket.Alive)
                     {
-                        RemoveSocket(socket);
+                        this.RemoveSocket(socket);
                         break;
                     }
-                }
 
                 await Task.Yield();
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "The UDP maintainer get an error.");
+                this.Logger.LogError(e, "The UDP maintainer get an error.");
             }
-        }
     }
 
     /// <summary>
-    /// 这个维护者负责全局转发收到的UDP包.
+    ///     这个维护者负责全局转发收到的UDP包.
     /// </summary>
     private async Task UdpMaintainer(
         EndPoint bindTo)
@@ -124,7 +109,6 @@ public class GlobalUDPManager
             Socket udp = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             udp.Bind(bindTo);
             while (true)
-            {
                 try
                 {
                     using var buffer = MemoryPool<byte>.Shared.Rent(2048);
@@ -132,7 +116,7 @@ public class GlobalUDPManager
 
                     var remote = ToStandardPoint(result.RemoteEndPoint);
 
-                    foreach (var socket in GetSockets())
+                    foreach (var socket in this.GetSockets())
                     {
                         var writer = socket.ReceivePipe.Writer;
                         var memory = writer.GetMemory(result.ReceivedBytes);
@@ -147,13 +131,12 @@ public class GlobalUDPManager
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, "The UDP maintainer get an error when loop.");
+                    this.Logger.LogError(ex, "The UDP maintainer get an error when loop.");
                 }
-            }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            Logger.LogError(ex, "The UDP maintainer get an error when initialize.");
+            this.Logger.LogError(ex, "The UDP maintainer get an error when initialize.");
             throw;
         }
     }
@@ -167,26 +150,26 @@ public class GlobalUDPManager
 
     private static string ToStandardString(IPEndPoint endPoint)
     {
-        return string.Format("{0}-{1}",endPoint.Address.ToString(),endPoint.Port).ToLower().Trim();
+        return string.Format("{0}-{1}", endPoint.Address.ToString(), endPoint.Port).ToLowerInvariant().Trim();
     }
 
     public void StartUDPListenFor(UDPSocket socket)
     {
         Guard.IsNotNull(socket);
 
-        AddSocket(socket);
+        this.AddSocket(socket);
 
         var localAddress = ToStandardPoint(socket.LocalAddress);
 
-        _ = _maintainerStarted.GetOrAdd(ToStandardString(localAddress), (local) =>
+        _ = this._maintainerStarted.GetOrAdd(ToStandardString(localAddress), local =>
         {
-            Task.Run(() => UdpMaintainer(localAddress));
+            Task.Run(() => this.UdpMaintainer(localAddress));
             return true;
         });
     }
 
     public void EndUpFor(UDPSocket socket)
     {
-        RemoveSocket(socket);
+        this.RemoveSocket(socket);
     }
 }

@@ -1,22 +1,15 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
-using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Autofac;
-using Autofac.Core;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Utopia.Core;
 using Utopia.Core.Net;
-using Utopia.Core.Test;
+
+#endregion
 
 namespace Utopia.Core.Test.Net;
+
 public class ConnecterTest
 {
     [Fact]
@@ -37,16 +30,13 @@ public class ConnecterTest
         };
 
         var packet = new Guuid("root", "packet");
-        var data = (byte[])([1, 1, 4, 5, 1, 4]);
+        var data = (byte[]) [1, 1, 4, 5, 1, 4];
 
         Mock<IPacketFormatter> formatter = new();
 
-        formatter.Setup((f) => f.GetValue(It.IsAny<Guuid>(), It.IsAny<ReadOnlySequence<byte>>()))
-            .Returns((Guuid _, ReadOnlySequence<byte> a) =>
-        {
-            return a.ToArray();
-        });
-        formatter.Setup((f) => f.ToPacket(It.IsAny<Guuid>(), It.IsAny<object>()))
+        formatter.Setup(f => f.GetValue(It.IsAny<Guuid>(), It.IsAny<ReadOnlySequence<byte>>()))
+            .Returns((Guuid _, ReadOnlySequence<byte> a) => { return a.ToArray(); });
+        formatter.Setup(f => f.ToPacket(It.IsAny<Guuid>(), It.IsAny<object>()))
             .Returns((Guuid id, object a) =>
             {
                 Assert.Equal(packet, id);
@@ -55,17 +45,14 @@ public class ConnecterTest
 
         serverHandler.Packetizer.Formatters.TryAdd(packet, formatter.Object);
         clientHandler.Packetizer.Formatters.TryAdd(packet, formatter.Object);
-        bool received = false;
+        var received = false;
 
         Mock<IPacketHandler> handler = new();
-        handler.Setup((h) => h.Handle(It.IsAny<Guuid>(), It.IsAny<object>()))
+        handler.Setup(h => h.Handle(It.IsAny<Guuid>(), It.IsAny<object>()))
             .Returns((Guuid id, object rev) =>
             {
                 Assert.Equal(packet, id);
-                if (((byte[])rev).SequenceEqual(data))
-                {
-                    received = true;
-                }
+                if (((byte[])rev).SequenceEqual(data)) received = true;
                 return Task.CompletedTask;
             });
 

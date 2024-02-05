@@ -1,28 +1,25 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
 using System.Buffers;
 using CommunityToolkit.Diagnostics;
-using MessagePack;
+using MemoryPack;
 using Utopia.Core.Map;
 
+#endregion
+
 namespace Utopia.Core.Net.Packet;
-public class BlockInfoPacket
+
+[MemoryPackable]
+public partial class BlockInfoPacket
 {
-    [Key(0)]
     public Guuid[] Entities { get; set; } = Array.Empty<Guuid>();
 
-    [Key(1)]
     public byte[][] EntityData { get; set; } = Array.Empty<byte[]>();
 
-    [Key(2)]
     public bool? Accessible { get; set; }
 
-    [Key(3)]
     public bool? Collidable { get; set; }
 
-    [Key(4)]
     public WorldPosition Position { get; set; }
 }
 
@@ -32,13 +29,15 @@ public class BlockInfoPacketFormatter : IPacketFormatter
 
     public Guuid Id => PacketTypeId;
 
-    public object GetValue(Guuid _, ReadOnlySequence<byte> packet) => MessagePackSerializer.Deserialize<BlockInfoPacket>(packet);
+    public object GetValue(Guuid _, ReadOnlySequence<byte> packet)
+    {
+        return MemoryPackSerializer.Deserialize<BlockInfoPacket>(packet)!;
+    }
 
     public Memory<byte> ToPacket(Guuid _, object value)
     {
         Guard.IsNotNull(value);
         Guard.IsAssignableToType(value, typeof(BlockInfoPacket));
-        return MessagePackSerializer.Serialize((BlockInfoPacket)value);
+        return MemoryPackSerializer.Serialize((BlockInfoPacket)value);
     }
 }
-

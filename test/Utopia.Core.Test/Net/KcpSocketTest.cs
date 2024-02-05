@@ -1,16 +1,11 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core.Net;
 
+#endregion
+
 namespace Utopia.Core.Test.Net;
+
 public class KcpSocketTest
 {
     [Fact]
@@ -24,22 +19,19 @@ public class KcpSocketTest
         Assert.True(clientKcp.Alive);
         Assert.True(serverKcp.Alive);
 
-        await clientKcp.Write((byte[])[1, 1, 4]);
-        await clientKcp.Write((byte[])[5, 1, 4]);
+        await clientKcp.Write((byte[]) [1, 1, 4]);
+        await clientKcp.Write((byte[]) [5, 1, 4]);
 
         MemoryStream output = new();
 
         while (true)
         {
-            byte[] buf = new byte[6];
+            var buf = new byte[6];
             var read = await serverKcp.Read(buf);
 
             output.Write(buf, 0, read);
 
-            if (output.Length >= 6)
-            {
-                break;
-            }
+            if (output.Length >= 6) break;
         }
 
         Assert.Equal(0, await serverKcp.Read(new byte[1]));
@@ -58,7 +50,7 @@ public class KcpSocketTest
         Assert.False(server.Alive);
 
         // send and no receive
-        await server.Write((byte[])[1, 1]);
+        await server.Write((byte[]) [1, 1]);
         Thread.Sleep(10);
         var received = await client.Read(new byte[2]);
 

@@ -1,41 +1,33 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
 using System.Reflection;
+using Version = SemanticVersioning.Version;
+
+#endregion
 
 namespace Utopia.Core;
 
 public static class VersionUtility
 {
-    private static Lazy<SemanticVersioning.Version> _version = new(() =>
+    private static readonly Lazy<Version> Version = new(() =>
     {
         // try get from GitVersion first
         var assembly = Assembly.GetCallingAssembly();
-        var assemblyName = assembly.GetName().Name;
         var gitVersionInformationType = assembly.GetType("GitVersionInformation");
 
-        if(gitVersionInformationType is null)
-        {
-            goto from_assembly;
-        }
+        if (gitVersionInformationType is null) goto from_assembly;
 
-        var fields = gitVersionInformationType.GetFields().ToDictionary((field) => field.Name);
+        var fields = gitVersionInformationType.GetFields().ToDictionary(field => field.Name);
 
-        if(fields.TryGetValue("SemVer", out var info))
-        {
+        if (fields.TryGetValue("SemVer", out var info))
             return SemanticVersioning.Version.Parse((string?)info.GetValue(null) ?? string.Empty);
-        }
 
-    from_assembly:
+        from_assembly:
 
-        var v = assembly.GetName().Version ?? new Version(0, 1, 0, 0);
+        var v = assembly.GetName().Version ?? new System.Version(0, 1, 0, 0);
 
         return SemanticVersioning.Version.Parse($"{v.Major}.{v.Minor}.{v.Revision}-{v.Build}");
     }, true);
 
-    public static SemanticVersioning.Version UtopiaCoreVersion { get {
-            return _version.Value;
-        }
-    }
+    public static Version UtopiaCoreVersion => Version.Value;
 }

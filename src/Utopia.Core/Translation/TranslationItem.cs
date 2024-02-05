@@ -1,14 +1,9 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
-using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
+
+#endregion
 
 namespace Utopia.Core.Translation;
 
@@ -17,30 +12,30 @@ public record TranslationDeclareItem(string Text, string Comment)
 }
 
 /// <summary>
-/// This class was used for code generated and human edit.
+///     This class was used for code generated and human edit.
 /// </summary>
 public sealed class TranslationItem
 {
     /// <summary>
-    /// The translation id of this item.
+    ///     The translation id of this item.
     /// </summary>
     [XmlElement]
     public string Text { get; set; } = "";
 
     /// <summary>
-    /// The translation comment of this id.
+    ///     The translation comment of this id.
     /// </summary>
     [XmlElement]
     public string Comment { get; set; } = string.Empty;
 
     /// <summary>
-    /// The translated of this id.
+    ///     The translated of this id.
     /// </summary>
     [XmlElement]
     public string Translated { get; set; } = string.Empty;
 }
 
-[XmlRoot(nameof(TranslationItems),Namespace = Xml.Namespace)]
+[XmlRoot(nameof(TranslationItems), Namespace = Xml.Namespace)]
 public class TranslationItems
 {
     public const string TranslationsElementName = "Translations";

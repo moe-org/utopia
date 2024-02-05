@@ -1,26 +1,20 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Utopia.Core.Net;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
+#endregion
 
 namespace Utopia.Core.Test.Net;
 
 /// <summary>
-/// Test both kcp and udp
+///     Test both kcp and udp
 /// </summary>
 public class KcpUdpTest
 {
-    public static (KcpSocket,KcpSocket) GetSockets()
+    public static (KcpSocket, KcpSocket) GetSockets()
     {
         var (one, two) = UdpSocketTest.GetSockets();
-        return new(new(one), new(two));
+        return new ValueTuple<KcpSocket, KcpSocket>(new KcpSocket(one), new KcpSocket(two));
     }
 
     [Fact]
@@ -38,7 +32,7 @@ public class KcpUdpTest
 
         // read
         MemoryStream memoryStream = new(bytes.Length);
-        byte[] buffer = new byte[bytes.Length];
+        var buffer = new byte[bytes.Length];
 
         while (memoryStream.Length != bytes.Length)
         {
@@ -56,7 +50,7 @@ public class KcpUdpTest
         Assert.False(sender.Alive);
 
         // send and no receive
-        await sender.Write((byte[])[1, 1]);
+        await sender.Write((byte[]) [1, 1]);
         Thread.Sleep(10);
         var received = await receiver.Read(new byte[2]);
 

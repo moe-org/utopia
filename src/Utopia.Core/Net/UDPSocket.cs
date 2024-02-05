@@ -1,113 +1,80 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
-using System;
 using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipelines;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using Autofac.Core;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Utopia.Core.Logging;
+
+#endregion
 
 namespace Utopia.Core.Net;
 
 public class UDPSocket : ISocket
 {
-    public ILogger<UDPSocket> Logger { protected get; init; }
-
-    public GlobalUDPManager UdpManager { protected get; init; }
+    private readonly Socket _udpSocket;
 
     internal readonly Pipe ReceivePipe = new();
 
-    private bool _disposed = false;
+    private bool _disposed;
 
     public UDPSocket(
-        Socket socket,
         IPEndPoint local,
         IPEndPoint remote,
         ILogger<UDPSocket> logger,
         GlobalUDPManager manager)
     {
-        Guard.IsNotNull(socket);
         Guard.IsNotNull(logger);
-        Logger = logger;
+        this.Logger = logger;
 
-        _udpSocket = socket;
+        this._udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-        UdpManager = manager;
+        this.UdpManager = manager;
 
-        Remote = remote;
-        Local = local;
+        this.Remote = new IPEndPoint(remote.Address.MapToIPv4(), remote.Port);
+        this.Local = new IPEndPoint(local.Address.MapToIPv4(), local.Port);
 
         manager.StartUDPListenFor(this);
     }
 
-    private readonly Socket _udpSocket;
+    public ILogger<UDPSocket> Logger { protected get; init; }
 
-    public bool Alive => !_disposed;
+    public GlobalUDPManager UdpManager { protected get; init; }
 
-    private IPEndPoint Local { get; init; }
+    private IPEndPoint Local { get; }
 
-    private IPEndPoint Remote { get; init; }
+    private IPEndPoint Remote { get; }
 
-    public EndPoint? RemoteAddress => Remote;
+    public bool Alive => !this._disposed;
 
-    public EndPoint? LocalAddress => Local;
+    public EndPoint? RemoteAddress => this.Remote;
+
+    public EndPoint? LocalAddress => this.Local;
 
     public void Dispose()
     {
-        Dispose(true);
+        this.Dispose(true);
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            UdpManager.EndUpFor(this);
-            _udpSocket.Dispose();
-        }
-
-        _disposed = true;
-    }
     public void Shutdown()
     {
-        Dispose();
+        this.Dispose();
     }
 
     public async Task<int> Read(Memory<byte> dst)
     {
-        if (!Alive)
-        {
-            return 0;
-        }
+        if (!this.Alive) return 0;
 
-        Debugger.Break();
+        var reader = this.ReceivePipe.Reader;
 
-        var reader = ReceivePipe.Reader;
-
-        if(!reader.TryRead(out ReadResult result))
-        {
-            return 0;
-        }
+        if (!reader.TryRead(out var result)) return 0;
 
         var copied = (int)Math.Min(result.Buffer.Length, dst.Length);
 
-        result.Buffer.Slice(0,copied).CopyTo(dst.Span.Slice(0, copied));
+        result.Buffer.Slice(0, copied).CopyTo(dst.Span.Slice(0, copied));
 
         reader.AdvanceTo(result.Buffer.Slice(0, copied).End);
 
@@ -116,15 +83,22 @@ public class UDPSocket : ISocket
 
     public async Task Write(ReadOnlyMemory<byte> data)
     {
-        if (!Alive)
-        {
-            return;
-        }
+        if (!this.Alive) return;
 
         var index = 0;
-        while (index != data.Length && Alive)
+        while (index != data.Length && this.Alive) index += await this._udpSocket.SendToAsync(data, this.Remote);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this._disposed) return;
+
+        if (disposing)
         {
-            index += await _udpSocket.SendToAsync(data,(RemoteAddress as IPEndPoint)!);
+            this.UdpManager.EndUpFor(this);
+            this._udpSocket.Dispose();
         }
+
+        this._disposed = true;
     }
 }

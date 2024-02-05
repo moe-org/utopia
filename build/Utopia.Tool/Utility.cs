@@ -1,11 +1,10 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using NLog;
+
+#endregion
 
 namespace Utopia.Tool;
 
@@ -35,20 +34,18 @@ public class Utility
     {
         List<Task<Compilation?>> compilations = new();
 
-        foreach (Project project in projects)
-        {
-            compilations.Add(project.GetCompilationAsync());
-        }
+        foreach (var project in projects) compilations.Add(project.GetCompilationAsync());
         Task.WhenAll(compilations.ToArray()).Wait();
 
         List<Compilation> result = new();
-        for (int index = 0; index != projects.Length; index++)
+        for (var index = 0; index != projects.Length; index++)
         {
             if (compilations[index].Result == null)
             {
                 s_logger.Error("failed to compile project {project}", projects[index]);
                 continue;
             }
+
             result.Add(compilations[index].Result!);
         }
 

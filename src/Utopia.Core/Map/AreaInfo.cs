@@ -1,9 +1,3 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
-
-using Utopia.Core.Translation;
-
 namespace Utopia.Core.Map;
 
 public static class AreaInformation
@@ -14,7 +8,7 @@ public static class AreaInformation
 }
 
 /// <summary>
-/// 气候
+///     气候
 /// </summary>
 public interface IPrecipitationInfo
 {
@@ -24,7 +18,7 @@ public interface IPrecipitationInfo
 }
 
 /// <summary>
-/// 海拔
+///     海拔
 /// </summary>
 public interface IElevationInfo
 {
@@ -34,7 +28,7 @@ public interface IElevationInfo
 }
 
 /// <summary>
-/// 气温
+///     气温
 /// </summary>
 public interface ITemperatureInfo
 {
@@ -44,7 +38,7 @@ public interface ITemperatureInfo
 }
 
 /// <summary>
-/// 生态环境
+///     生态环境
 /// </summary>
 public interface IBiomeInfo
 {
@@ -53,7 +47,7 @@ public interface IBiomeInfo
 }
 
 /// <summary>
-/// 建筑
+///     建筑
 /// </summary>
 public interface IConstructionInfo
 {

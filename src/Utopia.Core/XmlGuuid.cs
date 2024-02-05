@@ -1,36 +1,59 @@
-// This file is a part of the project Utopia(Or is a part of its subproject).
-// Copyright 2020-2023 mingmoe(http://kawayi.moe)
-// The file was licensed under the AGPL 3.0-or-later license
+#region
 
+using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using System.Xml;
+
+#endregion
 
 namespace Utopia.Core;
 
 /// <summary>
-/// 这个类用于GUUID的XML的序列化。
+///     这个类用于GUUID的XML的序列化。
 /// </summary>
 [XmlSchemaProvider(nameof(GetGuuidSchemaOfType))]
 public sealed class XmlGuuid : IXmlSerializable
 {
-    public Guuid Guuid { get; set; } = Guuid.Empty;
-
     public XmlGuuid()
     {
-
     }
 
     public XmlGuuid(Guuid guuid)
     {
-        Guuid = guuid;
+        this.Guuid = guuid;
     }
 
-    public override bool Equals(object? obj) => Guuid.Equals(obj);
+    public Guuid Guuid { get; set; } = Guuid.Empty;
 
-    public override int GetHashCode() => Guuid.GetHashCode();
+    public XmlSchema? GetSchema()
+    {
+        return null;
+    }
 
-    public override string ToString() => Guuid.ToString();
+    public void ReadXml(XmlReader reader)
+    {
+        this.Guuid = Guuid.Parse(reader.ReadElementContentAsString());
+    }
+
+    public void WriteXml(XmlWriter writer)
+    {
+        writer.WriteString(this.Guuid.ToString());
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return this.Guuid.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return this.Guuid.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return this.Guuid.ToString();
+    }
 
     public static XmlSchemaSimpleType GetGuuidSchemaOfType(XmlSchemaSet set)
     {
@@ -38,7 +61,7 @@ public sealed class XmlGuuid : IXmlSerializable
 
         {
             XmlSchemaSimpleTypeRestriction restriction = new();
-            restriction.BaseTypeName = new("string", "http://www.w3.org/2001/XMLSchema");
+            restriction.BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
             {
                 XmlSchemaPatternFacet facet = new();
                 facet.Value = Guuid.Pattern;
@@ -48,20 +71,5 @@ public sealed class XmlGuuid : IXmlSerializable
         }
 
         return type;
-    }
-
-    public XmlSchema? GetSchema()
-    {
-        return null;
-    }
-
-    public void ReadXml(XmlReader reader)
-    {
-        Guuid = Guuid.Parse(reader.ReadElementContentAsString());
-    }
-
-    public void WriteXml(XmlWriter writer)
-    {
-        writer.WriteString(Guuid.ToString());
     }
 }
