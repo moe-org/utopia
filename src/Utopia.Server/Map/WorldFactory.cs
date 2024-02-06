@@ -3,7 +3,6 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core;
-using Utopia.Server.Plugin;
 
 namespace Utopia.Server.Map;
 

@@ -1,6 +1,5 @@
 #region
 
-using System.IO.Abstractions;
 using System.Xml.Serialization;
 using Utopia.Core.IO;
 using Range = SemanticVersioning.Range;
@@ -14,9 +13,7 @@ namespace Utopia.Core.Plugin;
 ///     一个标准的插件查找器.不提供默认插件.
 /// </summary>
 public class StandardPluginProvider : IPluginProvider
-{
-    public required IFileSystem FileSystem { init; protected get; }
-    
+{   
     /// <summary>
     ///     从<see cref="IPluginResourceLocator.DefaultPluginManifestFile" />中读取并序列化为<see cref="Manifest" />.
     /// </summary>
@@ -38,14 +35,14 @@ public class StandardPluginProvider : IPluginProvider
     protected Manifest? GetManifestFile(string directory)
     {
         // 查找清单文件
-        var manifestFile = FileSystem.Path.GetFullPath(FileSystem.Path.Join(directory, IPluginResourceLocator.DefaultPluginManifestFile));
+        var manifestFile = Path.GetFullPath(Path.Join(directory, IPluginResourceLocator.DefaultPluginManifestFile));
 
-        if (!FileSystem.File.Exists(manifestFile)) return null;
+        if (!File.Exists(manifestFile)) return null;
 
         // 读取
         XmlSerializer serializer = new(typeof(Manifest));
 
-        using var fs = FileSystem.File.OpenRead(manifestFile);
+        using var fs = File.OpenRead(manifestFile);
         var manifest = serializer.Deserialize<Manifest>(fs);
 
         return manifest;
@@ -82,7 +79,7 @@ public class StandardPluginProvider : IPluginProvider
                 Info = information,
                 TypeName = [item.TypeName],
                 Assemblies =
-                    item.AssemblyLoad.Select(assembly => FileSystem.Path.GetFullPath(FileSystem.Path.Join(dir, assembly))).ToArray()
+                    item.AssemblyLoad.Select(assembly => Path.GetFullPath(Path.Join(dir, assembly))).ToArray()
             });
         }
 

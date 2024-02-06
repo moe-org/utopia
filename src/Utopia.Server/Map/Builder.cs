@@ -62,7 +62,8 @@ public class AreaLayerBuilder
         {
             for (int y = 0; y != Blocks[x].Length; y++)
             {
-                using var _ = Blocks[x][y].EnterWriteLock();
+                // TODO: LOCK
+                // using var _ = Blocks[x][y].EnterWriteLock();
                 action.Invoke(Blocks[x][y], new FlatPosition(x, y));
             }
         }

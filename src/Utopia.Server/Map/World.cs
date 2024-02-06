@@ -7,7 +7,6 @@ using Utopia.Core;
 using Utopia.Core.IO;
 using Utopia.Core.Map;
 using Utopia.Server.Logic;
-using Utopia.Server.Plugin;
 
 namespace Utopia.Server.Map;
 
@@ -139,7 +138,7 @@ public class World : IWorld
             {
                 StreamUtility.WriteInt(stream, y.Position.X).Wait();
                 StreamUtility.WriteInt(stream, y.Position.Y).Wait();
-                StreamUtility.WriteDataWithLength(stream, y.Save()).Wait();
+                StreamUtility.WriteDataWithLength(stream, y.SaveAs()).Wait();
             }
         }
         File.WriteAllBytes(Path.Join(Path.GetFullPath(_path), "data.bin"), stream.ToArray());

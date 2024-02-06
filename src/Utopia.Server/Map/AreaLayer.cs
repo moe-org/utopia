@@ -103,7 +103,7 @@ public class AreaLayer : IAreaLayer
         }
     }
 
-    public byte[] Save()
+    public byte[] SaveAs()
     {
         MemoryStream stream = new();
 
@@ -111,7 +111,7 @@ public class AreaLayer : IAreaLayer
         {
             foreach (Block y in x)
             {
-                StreamUtility.WriteDataWithLength(stream, y.Save()).Wait();
+                StreamUtility.WriteDataWithLength(stream, y.SaveAs()).Wait();
             }
         }
 

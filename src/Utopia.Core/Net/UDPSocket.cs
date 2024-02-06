@@ -64,13 +64,13 @@ public class UDPSocket : ISocket
         this.Dispose();
     }
 
-    public async Task<int> Read(Memory<byte> dst)
+    public Task<int> Read(Memory<byte> dst)
     {
-        if (!this.Alive) return 0;
+        if (!this.Alive) return Task.FromResult(0);
 
         var reader = this.ReceivePipe.Reader;
 
-        if (!reader.TryRead(out var result)) return 0;
+        if (!reader.TryRead(out var result)) return Task.FromResult(0);
 
         var copied = (int)Math.Min(result.Buffer.Length, dst.Length);
 
@@ -78,7 +78,7 @@ public class UDPSocket : ISocket
 
         reader.AdvanceTo(result.Buffer.Slice(0, copied).End);
 
-        return copied;
+        return Task.FromResult(copied);
     }
 
     public async Task Write(ReadOnlyMemory<byte> data)

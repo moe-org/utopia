@@ -15,7 +15,7 @@ public class QueryBlockPacketHandler : IPacketHandler
 {
     public required IConnectHandler ConnectHandler { private get; init; }
 
-    public required ConcurrentDictionary<long,IWorld> Worlds { private get; init; }
+    public required ConcurrentDictionary<Guuid,IWorld> Worlds { private get; init; }
 
     public Task Handle(Guuid packetId, object packet)
     {
@@ -28,7 +28,7 @@ public class QueryBlockPacketHandler : IPacketHandler
 
         if (world!.TryGetBlock(query.QueryPosition.ToPos(), out IBlock? block))
         {
-            using var _ = block!.EnterReadLock();
+            // using var _ = block!.EnterReadLock();
 
             var info = new BlockInfoPacket();
             IReadOnlyCollection<IEntity> entities = block!.GetAllEntities();

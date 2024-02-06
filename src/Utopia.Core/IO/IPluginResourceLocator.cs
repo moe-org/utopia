@@ -2,8 +2,6 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-using System.IO.Abstractions;
-
 namespace Utopia.Core.IO;
 
 /// <summary>
@@ -15,11 +13,6 @@ public interface IPluginResourceLocator
     ///     默认的清单文件路径.清单文件的类型见<see cref="Plugin.Manifest" />
     /// </summary>
     public const string DefaultPluginManifestFile = "Manifest.xml";
-    
-    /// <summary>
-    /// the resource is based on the file system
-    /// </summary>
-    IFileSystem FileSystem { get; }
 
     /// <summary>
     ///     The directory path of the plugin.

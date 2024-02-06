@@ -13,7 +13,7 @@ namespace Utopia.Core.Test.Net;
 public class ConnecterTest
 {
     [Fact]
-    public async void ConnectHandlerTest()
+    public void ConnectHandlerTest()
     {
         // prepare
         var (client, server) = PipeSocket.Create();

@@ -147,7 +147,7 @@ public class Area : IArea
         }
     }
 
-    public byte[] Save()
+    public byte[] SaveAs()
     {
         KeyValuePair<int, AreaLayer>[] floors = _floors.ToArray();
         var stream = new MemoryStream();
@@ -155,7 +155,7 @@ public class Area : IArea
         foreach (KeyValuePair<int, AreaLayer> floor in floors)
         {
             StreamUtility.WriteInt(stream, floor.Key).Wait();
-            StreamUtility.WriteDataWithLength(stream, floor.Value.Save()).Wait();
+            StreamUtility.WriteDataWithLength(stream, floor.Value.SaveAs()).Wait();
         }
 
         return stream.ToArray();

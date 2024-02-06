@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using Utopia.Core;
 using Utopia.Core.IO;
 using Utopia.Core.Map;
 using Utopia.Server.Entity;
@@ -124,14 +125,14 @@ public class Block(WorldPosition position) : IBlock
         }
     }
 
-    public byte[] Save()
+    public byte[] SaveAs()
     {
         MemoryStream stream = new();
         StreamUtility.WriteInt(stream, _entities.Count).Wait();
         foreach (IEntity item in _entities)
         {
             StreamUtility.WriteStringWithLength(stream, item.Id.ToString()).Wait();
-            StreamUtility.WriteDataWithLength(stream, item.Save()).Wait();
+            StreamUtility.WriteDataWithLength(stream, item.SaveAs()).Wait();
         }
 
         return stream.ToArray();

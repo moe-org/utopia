@@ -1,6 +1,5 @@
 #region
 
-using System.IO.Abstractions;
 using Utopia.Core.Plugin;
 
 #endregion
@@ -8,7 +7,7 @@ using Utopia.Core.Plugin;
 namespace Utopia.Core.IO;
 
 /// <summary>
-///     The file system
+///     The file locator
 /// </summary>
 public interface IResourceLocator
 {
@@ -25,8 +24,6 @@ public interface IResourceLocator
     public const string DefaultServerDirectoryName = "Server";
 
     public const string DefaultUtilitiesDirectoryName = "Utilities";
-    
-    IFileSystem FileSystem { get; }
 
     /// <summary>
     ///     游戏/server所在位置的根目录
@@ -74,21 +71,21 @@ public interface IResourceLocator
     /// </summary>
     void CreateIfNotExist()
     {
-        FileSystem.Directory.CreateDirectory(this.RootDirectory);
-        FileSystem.Directory.CreateDirectory(this.AssetsDirectory);
-        FileSystem.Directory.CreateDirectory(this.WorldsDirectory);
-        FileSystem.Directory.CreateDirectory(this.CharactersDirectory);
-        FileSystem.Directory.CreateDirectory(this.PluginsDirectory);
-        FileSystem.Directory.CreateDirectory(this.ConfigurationDirectory);
-        FileSystem.Directory.CreateDirectory(this.UtilitiesDirectory);
-        if (this.ServerDirectory != null) 
-            FileSystem.Directory.CreateDirectory(this.ServerDirectory);
+        Directory.CreateDirectory(this.RootDirectory);
+        Directory.CreateDirectory(this.AssetsDirectory);
+        Directory.CreateDirectory(this.WorldsDirectory);
+        Directory.CreateDirectory(this.CharactersDirectory);
+        Directory.CreateDirectory(this.PluginsDirectory);
+        Directory.CreateDirectory(this.ConfigurationDirectory);
+        Directory.CreateDirectory(this.UtilitiesDirectory);
+        if (this.ServerDirectory != null)
+            Directory.CreateDirectory(this.ServerDirectory);
     }
 
     string GetConfigurationDirectoryOfPlugin(IPluginInformation plugin)
     {
-        var path = FileSystem.Path.Join(this.ConfigurationDirectory, plugin.Id.ToCsIdentifier());
-        FileSystem.Directory.CreateDirectory(path);
+        var path = Path.Join(this.ConfigurationDirectory, plugin.Id.ToCsIdentifier());
+        Directory.CreateDirectory(path);
         return path;
     }
 }
