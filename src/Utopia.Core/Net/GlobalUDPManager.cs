@@ -2,6 +2,7 @@
 
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using CommunityToolkit.Diagnostics;
@@ -16,6 +17,11 @@ namespace Utopia.Core.Net;
 /// </summary>
 public class GlobalUDPManager
 {
+    /// <summary>
+    /// 最大接受缓冲区大小。
+    /// </summary>
+    public const int MaxReceiveBufferSize = 8192;
+
     private readonly ConcurrentDictionary<string, bool> _maintainerStarted = [];
 
     private readonly List<UDPSocket> _sockets = [];
@@ -82,13 +88,20 @@ public class GlobalUDPManager
         while (true)
             try
             {
+                List<UDPSocket> sockets = [];
+
                 foreach (var socket in this.GetSockets())
                     if (!socket.Alive)
                     {
-                        this.RemoveSocket(socket);
-                        break;
+                        sockets.Add(socket);
                     }
 
+                foreach(var toRemove in sockets)
+                {
+                    this.RemoveSocket(toRemove);
+                }
+
+                await Task.Delay(50);
                 await Task.Yield();
             }
             catch (Exception e)
@@ -100,18 +113,18 @@ public class GlobalUDPManager
     /// <summary>
     ///     这个维护者负责全局转发收到的UDP包.
     /// </summary>
-    private async Task UdpMaintainer(
-        EndPoint bindTo)
+    private async Task UdpMaintainer(IPEndPoint bindTo)
     {
         try
         {
             var allAddress = new IPEndPoint(IPAddress.Any, 0);
             Socket udp = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            udp.ReceiveBufferSize = MaxReceiveBufferSize;
             udp.Bind(bindTo);
             while (true)
                 try
                 {
-                    using var buffer = MemoryPool<byte>.Shared.Rent(2048);
+                    using var buffer = MemoryPool<byte>.Shared.Rent(MaxReceiveBufferSize);
                     var result = await udp.ReceiveFromAsync(buffer.Memory, allAddress);
 
                     var remote = ToStandardPoint(result.RemoteEndPoint);
@@ -159,7 +172,8 @@ public class GlobalUDPManager
 
         this.AddSocket(socket);
 
-        var localAddress = ToStandardPoint(socket.LocalAddress);
+        var localAddress = ToStandardPoint(socket.LocalAddress)
+            ?? throw new ArgumentException("The UDP Socket must have a local address");
 
         _ = this._maintainerStarted.GetOrAdd(ToStandardString(localAddress), local =>
         {

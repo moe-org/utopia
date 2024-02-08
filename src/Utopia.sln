@@ -18,15 +18,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Build", "..\build\Ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Tool", "..\build\Utopia.Tool\Utopia.Tool.csproj", "{2535A702-8958-44A4-B007-98E4CC804C8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Server.CorePlugin", "Utopia.Server.CorePlugin\Utopia.Server.CorePlugin.csproj", "{565751E6-3285-4B1F-8EF3-7B20A88F4B41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Server.CorePlugin", "Utopia.Server.CorePlugin\Utopia.Server.CorePlugin.csproj", "{565751E6-3285-4B1F-8EF3-7B20A88F4B41}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mingmoe.Demystifier", "Mingmoe.Demystifier\src\Mingmoe.Demystifier\Mingmoe.Demystifier.csproj", "{0118BA1C-A260-4CC8-828E-6B70074364A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Analyzer", "Utopia.Analyzer\Utopia.Analyzer.csproj", "{6EB6070B-B682-48D4-88C7-CE49C25B640D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Analyzer", "Utopia.Analyzer\Utopia.Analyzer.csproj", "{6EB6070B-B682-48D4-88C7-CE49C25B640D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Godot", "..\godot\Utopia.Godot.csproj", "{F54D8D91-087B-4F6A-820B-4516763B509B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Godot", "..\godot\Utopia.Godot.csproj", "{F54D8D91-087B-4F6A-820B-4516763B509B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Server", "Utopia.Server\Utopia.Server.csproj", "{41122A2A-1B4B-4836-B6CA-0853A9ED4A98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Server", "Utopia.Server\Utopia.Server.csproj", "{41122A2A-1B4B-4836-B6CA-0853A9ED4A98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Server.Test", "..\test\Utopia.Server.Test\Utopia.Server.Test.csproj", "{BC7B2113-D5B0-400D-BCED-EF87D8FE4C61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,14 +64,6 @@ Global
 		{6EB6070B-B682-48D4-88C7-CE49C25B640D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6EB6070B-B682-48D4-88C7-CE49C25B640D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6EB6070B-B682-48D4-88C7-CE49C25B640D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{56064965-EC73-4F63-8A59-A72125070B7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{56064965-EC73-4F63-8A59-A72125070B7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{56064965-EC73-4F63-8A59-A72125070B7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{56064965-EC73-4F63-8A59-A72125070B7B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B2EC2A69-FA49-4155-88F3-99D4826BE195}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B2EC2A69-FA49-4155-88F3-99D4826BE195}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B2EC2A69-FA49-4155-88F3-99D4826BE195}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B2EC2A69-FA49-4155-88F3-99D4826BE195}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F54D8D91-087B-4F6A-820B-4516763B509B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F54D8D91-087B-4F6A-820B-4516763B509B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F54D8D91-087B-4F6A-820B-4516763B509B}.Release|Any CPU.ActiveCfg = Debug|Any CPU
@@ -78,13 +72,15 @@ Global
 		{41122A2A-1B4B-4836-B6CA-0853A9ED4A98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41122A2A-1B4B-4836-B6CA-0853A9ED4A98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41122A2A-1B4B-4836-B6CA-0853A9ED4A98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC7B2113-D5B0-400D-BCED-EF87D8FE4C61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC7B2113-D5B0-400D-BCED-EF87D8FE4C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC7B2113-D5B0-400D-BCED-EF87D8FE4C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC7B2113-D5B0-400D-BCED-EF87D8FE4C61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {30ED50CE-56C5-4B2E-A587-E0A7B370430A}
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal

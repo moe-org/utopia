@@ -16,6 +16,7 @@ public enum LifeCycleOrder
     /// Before enter next lifecycle. The <see cref="LifeCycleEvent{CycleT}.Cycle"/> hasn't changed.
     /// </summary>
     Before,
+    Current,
     /// <summary>
     /// After enter next lifecycle.
     /// </summary>
@@ -37,14 +38,14 @@ public class LifeCycleEvent<TCycle>
     /// <summary>
     /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
-    public static void EnterCycle(TCycle cycle, Action action, ILogger logger, Action<LifeCycleEvent<TCycle>> fireEventAction, Action switchAction)
+    public static void EnterCycle(TCycle cycle, ILogger logger, Action<LifeCycleEvent<TCycle>> fireEventAction, Action switchAction)
     {
         ArgumentNullException.ThrowIfNull(cycle);
         logger.LogInformation("enter pre-{lifecycle} lifecycle", cycle);
         fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.Before, cycle));
         logger.LogInformation("enter {lifecycle} lifecycle", cycle);
         switchAction.Invoke();
-        action.Invoke();
+        fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.Current,cycle));
         logger.LogInformation("enter post-{lifecycle} lifecycle", cycle);
         fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.After, cycle));
     }
@@ -52,11 +53,10 @@ public class LifeCycleEvent<TCycle>
     /// <summary>
     /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
-    public static void EnterCycle(TCycle cycle, Action action, ILogger logger, WeakThreadSafeEventSource<LifeCycleEvent<TCycle>> bus, Action switchAction)
+    public static void EnterCycle(TCycle cycle, ILogger logger, WeakThreadSafeEventSource<LifeCycleEvent<TCycle>> bus, Action switchAction)
     {
         EnterCycle(
             cycle,
-            action,
             logger,
             (e) =>
             {
@@ -68,11 +68,10 @@ public class LifeCycleEvent<TCycle>
     /// <summary>
     /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
-    public static void EnterCycle(TCycle cycle, Action action, ILogger logger, IEventBus bus, Action switchAction)
+    public static void EnterCycle(TCycle cycle, ILogger logger, IEventBus bus, Action switchAction)
     {
         EnterCycle(
             cycle,
-            action,
             logger,
             (e) =>
             {

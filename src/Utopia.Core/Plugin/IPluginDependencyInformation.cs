@@ -25,5 +25,5 @@ public interface IPluginDependencyInformation
     /// <summary>
     ///     依赖的插件的guuid以及版本范围
     /// </summary>
-    public IEnumerable<(Guuid, Range)> Dependences { get; }
+    public IEnumerable<(Guuid, Range)> Dependencies { get; }
 }

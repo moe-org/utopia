@@ -21,7 +21,7 @@ public partial class LoginPacket
 
 public class LoginPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = Guuid.GetInternalGuuid("Net", "Packet", "Login");
+    public static readonly Guuid PacketTypeId = InternalHelper.NewInternalGuuid("Net", "Packet", "Login");
 
     public object GetValue(Guuid _, ReadOnlySequence<byte> packet)
     {

@@ -9,6 +9,7 @@ namespace Utopia.Core.Test.Net;
 /// <summary>
 ///     Test both kcp and udp
 /// </summary>
+[Collection("UDP Tests")]
 public class KcpUdpTest
 {
     public static (KcpSocket, KcpSocket) GetSockets()
@@ -25,8 +26,7 @@ public class KcpUdpTest
         Assert.True(sender.Alive);
         Assert.True(receiver.Alive);
 
-        var bytes = new byte[6];
-        Array.Clear(bytes, 0, bytes.Length);
+        var bytes = Enumerable.Repeat((byte)10, 128).ToArray();
 
         await sender.Write(bytes);
 
@@ -36,6 +36,8 @@ public class KcpUdpTest
 
         while (memoryStream.Length != bytes.Length)
         {
+            Assert.True(receiver.Alive);
+
             var got = await receiver.Read(buffer);
 
             memoryStream.Write(buffer, 0, got);

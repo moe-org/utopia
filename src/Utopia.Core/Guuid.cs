@@ -43,14 +43,6 @@ public readonly partial struct Guuid : IEnumerable<string>
     public static readonly Guuid Empty = new("Empty", "Empty");
 
     /// <summary>
-    ///     获取一个内部的Guuid，使用<see cref="UtopiaRoot" />作为Root
-    /// </summary>
-    internal static Guuid GetInternalGuuid(params string[] nodes)
-    {
-        return new Guuid(UtopiaRoot, nodes);
-    }
-
-    /// <summary>
     ///     检查name是否符合要求
     /// </summary>
     /// <param name="name">要检查的name</param>
@@ -129,7 +121,7 @@ public readonly partial struct Guuid : IEnumerable<string>
     public override string ToString()
     {
         using var builder = ZString.CreateStringBuilder(true);
-    
+
         builder.Append(this.Root);
         foreach (var node in this.Nodes)
         {
@@ -149,8 +141,8 @@ public readonly partial struct Guuid : IEnumerable<string>
     /// <exception cref="ArgumentException">输入的字符串有误</exception>
     public static Guuid Parse(string s)
     {
-        return !TryParse(s, out var result, out var msg) 
-            ? throw GuuidFormatException.Throw(s, msg) 
+        return !TryParse(s, out var result, out var msg)
+            ? throw GuuidFormatException.Throw(s, msg)
             : result.Value;
     }
 

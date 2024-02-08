@@ -1,14 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../Utopia.Server/Utopia.Server.csproj"/>
+      <None Remove="test.guuid.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="test.guuid.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="../Utopia.Server/Utopia.Server.csproj" />
+
+      <ProjectReference Include="../Utopia.Analyzer/Utopia.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

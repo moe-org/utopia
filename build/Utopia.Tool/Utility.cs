@@ -1,5 +1,7 @@
 #region
 
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using NLog;
@@ -50,5 +52,19 @@ public class Utility
         }
 
         return result.ToArray();
+    }
+
+    public static string Sha256(string value) {
+        StringBuilder Sb = new StringBuilder();
+
+        using (SHA256 hash = SHA256.Create()) {
+            Encoding enc = Encoding.UTF8;
+            Byte[] result = hash.ComputeHash(enc.GetBytes(value));
+
+            foreach (Byte b in result)
+                Sb.Append(b.ToString("x2"));
+        }
+
+        return Sb.ToString();
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using Autofac;
 using CommunityToolkit.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Utopia.Core;
 using Utopia.Core.Exceptions;
 using Utopia.Core.Net;
@@ -50,10 +51,12 @@ public interface IInternetMain
     /// </summary>
     public IEnumerable<IConnectHandler> ConnectionPool { get; }
 
+    public void Stop();
+
     /// <summary>
-    /// 网络线程停机/崩溃 source。
+    /// 网络线程Task.代表网络现场的状态。
     /// </summary>
-    CancellationTokenSource StopTokenSource { get; }
+    Task Task { get; }
 }
 
 /// <summary>
@@ -63,21 +66,64 @@ internal sealed class InternetMain : IInternetMain
 {
     public required IInternetListener InternetListener { get; init; }
 
+    public InternetMain(IEventBus eventBus,ILogger<InternetMain> logger,Launcher.LauncherOption option)
+    {
+        eventBus.Register<LifeCycleEvent<LifeCycle>>((cycle) =>
+        {
+            if (cycle is not { Cycle: LifeCycle.StartNetThread , Order: LifeCycleOrder.Current })
+            {
+                return;
+            }
+
+            var thread = new Thread( () =>
+            {
+                // 注册关闭事件
+                eventBus.Register<LifeCycleEvent<LifeCycle>>((stopCycle) =>
+                {
+                    if (stopCycle is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.After })
+                    {
+                        Stop();
+                    }
+                });
+                try
+                {
+                    Run().Wait();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Internet Thread Crashed");
+                }
+                finally
+                {
+                    Stop();
+                }
+            })
+            {
+                Name = "Server Networking Thread"
+            };
+            thread.Start();
+        });
+    }
+
     public required ILifetimeScope Container { get; init; }
 
-    /// <summary>
-    /// TODO: check client alive frequaently and shutdown all the clients when shutdown
-    /// </summary>
     private readonly List<IConnectHandler> _clients = new();
 
-    public CancellationTokenSource StopTokenSource { get; } = new();
-    
+    private readonly TaskCompletionSource _source = new();
+
+    public void Stop()
+    {
+        _source.TrySetResult();
+    }
+
+    public Task Task => _source.Task;
+
     private readonly object _lock = new();
 
     private readonly WeakThreadSafeEventSource<ContainerBuilder> _clientSource = new();
 
     private readonly WeakThreadSafeEventSource<SocketCreatedEvent> _socketSource = new();
-    
+
     public event Action<ContainerBuilder> ClientContainerCreateEvent
     {
         add => this._clientSource.Register(value);
@@ -117,23 +163,14 @@ internal sealed class InternetMain : IInternetMain
         }
     }
 
-    public async Task Run(CancellationTokenSource startTokenSource)
+    public async Task Run()
     {
         try
         {
-            while (!StopTokenSource.IsCancellationRequested)
+            while (!Task.IsCompleted)
             {
-                // wait for accept
-                startTokenSource.CancelAfter(100 /* wait for fun :-) */);
-
                 Task<ISocket> accept = InternetListener.Accept();
-                await accept.WaitAsync(StopTokenSource.Token);
-
-                if (StopTokenSource.IsCancellationRequested)
-                {
-                    accept.Dispose();
-                    return;
-                }
+                await accept;
 
                 var socket = accept.Result;
 
@@ -155,9 +192,9 @@ internal sealed class InternetMain : IInternetMain
                 try
                 {
                     var e = new SocketCreatedEvent(
-                                                   socket,
-                                                   container.Resolve<IConnectHandler>());
-                    this._socketSource.Fire(e,false);
+                        socket,
+                        container.Resolve<IConnectHandler>());
+                    this._socketSource.Fire(e, false);
 
                     // add to the pool
                     lock (this._lock)
@@ -173,14 +210,18 @@ internal sealed class InternetMain : IInternetMain
                     container.Dispose();
                     throw;
                 }
-                
+
                 // clear dead connections
                 RemoveDeadConnection();
             }
         }
+        catch (Exception e)
+        {
+            _source.TrySetException(e);
+        }
         finally
         {
-            this.StopTokenSource.Cancel();
+            _source.TrySetResult();
         }
     }
 }

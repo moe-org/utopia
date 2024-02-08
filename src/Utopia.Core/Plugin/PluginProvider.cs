@@ -13,19 +13,37 @@ namespace Utopia.Core.Plugin;
 ///     一个标准的插件查找器.不提供默认插件.
 /// </summary>
 public class StandardPluginProvider : IPluginProvider
-{   
+{
     /// <summary>
     ///     从<see cref="IPluginResourceLocator.DefaultPluginManifestFile" />中读取并序列化为<see cref="Manifest" />.
     /// </summary>
     /// <param name="pathToPlugin">要获取<see cref="IPluginResourceLocator.DefaultPluginManifestFile" />文件的目录</param>
     /// <returns>如果清单文件不存在,返回空数组.否则返回查找到的清单文件.</returns>
-    public IEnumerable<IUnloadedPlugin> GetPluginsFrom(string pathToPlugin)
+    public IEnumerable<IUnloadedPlugin> GetPluginAtDirectory(string pathToPlugin)
     {
         var manifest = this.GetManifestFile(pathToPlugin);
 
         if (manifest is null) return [];
 
         return this.ProcessManifestFile(manifest, pathToPlugin);
+    }
+
+    public IEnumerable<IUnloadedPlugin> GetAllPluginsFrom(string directory)
+    {
+        var items = Directory.GetFiles(directory,
+                                       IPluginResourceLocator.DefaultPluginManifestFile,
+                                       SearchOption.AllDirectories);
+
+        List<IUnloadedPlugin> plugins = [];
+
+        foreach (string item in items)
+        {
+            plugins.AddRange(GetPluginAtDirectory(Path.GetDirectoryName(item)
+                                                  ?? throw new InvalidOperationException(
+                                                      $"failed to get directory name for plugin at {item}")));
+        }
+
+        return plugins;
     }
 
     /// <summary>
@@ -63,15 +81,15 @@ public class StandardPluginProvider : IPluginProvider
             List<(Guuid, Range)> deps = [];
             foreach (var dependency in item.Dependencies)
                 deps.Add(new ValueTuple<Guuid, Range>(
-                    dependency.PluginId.Guuid,
+                    dependency.Id.Guuid,
                     Range.Parse(dependency.RequiredVersionRange)
                 ));
 
             PluginDependencyInformation information = new()
             {
-                Version = Version.Parse(item.PluginVersion),
-                Id = item.PluginId.Guuid,
-                Dependences = deps.ToArray()
+                Version = Version.Parse(item.Version),
+                Id = item.Id.Guuid,
+                Dependencies = deps.ToArray()
             };
 
             found.Add(new UnloadedAssemblyPlugin
@@ -79,7 +97,7 @@ public class StandardPluginProvider : IPluginProvider
                 Info = information,
                 TypeName = [item.TypeName],
                 Assemblies =
-                    item.AssemblyLoad.Select(assembly => Path.GetFullPath(Path.Join(dir, assembly))).ToArray()
+                    item.Assemblies.Select(assembly => Path.GetFullPath(Path.Join(dir, assembly))).ToArray()
             });
         }
 

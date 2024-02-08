@@ -23,6 +23,7 @@ public interface IPluginLoader<PluginT> where PluginT : IPluginBase
 
     /// <summary>
     ///     激活所有<see cref="UnloadedPlugins" />插件.
+    ///     所有激活过的插件实例将会被添加到<see cref="LoadedPlugins"/>中.
     /// </summary>
     void Activate(IEnumerable<IUnloadedPlugin> plugins);
 }

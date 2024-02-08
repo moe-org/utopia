@@ -50,7 +50,6 @@ public interface IInternetListener : IDisposable
 
     /// <summary>
     /// 链接并监听端口，一个INetServer只能监听一个端口。
-    /// UDP和TCP都适用。
     /// </summary>
     /// <param name="port">端口号</param>
     void Listen(int port);

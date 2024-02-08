@@ -35,7 +35,10 @@ public sealed class KcpSocket : ISocket, IKcpCallback
     private bool _disposed;
 
     private SpinLock _lock;
+
     private readonly Task _task;
+
+    private DateTimeOffset Current => this._originDate.AddMilliseconds(this._stopwatch.ElapsedMilliseconds);
 
     public KcpSocket(ISocket socket, uint conv = 0)
     {
@@ -55,8 +58,6 @@ public sealed class KcpSocket : ISocket, IKcpCallback
         this._task = Task.Run(() => this.UpdateLoop(this._updateLoopCancellationTokenSource.Token));
     }
 
-    private DateTimeOffset Current => this._originDate.AddMilliseconds(this._stopwatch.ElapsedMilliseconds);
-
     public async void Output(IMemoryOwner<byte> buffer, int avalidLength)
     {
         using var b = buffer;
@@ -73,8 +74,6 @@ public sealed class KcpSocket : ISocket, IKcpCallback
     public Task<int> Read(Memory<byte> dst)
     {
         if (!this.Alive) return Task.FromResult(0);
-
-        this.CheckError();
 
         // receive is **not** thread-safe
         var locked = false;
@@ -97,8 +96,6 @@ public sealed class KcpSocket : ISocket, IKcpCallback
     public async Task Write(ReadOnlyMemory<byte> data)
     {
         if (!this.Alive) return;
-
-        this.CheckError();
 
         // send is thread-safe
         var index = 0;
@@ -128,17 +125,53 @@ public sealed class KcpSocket : ISocket, IKcpCallback
         this.Dispose();
     }
 
-    private void CheckError()
-    {
-        if (this._task.IsCompleted && this._task.Exception != null) this._task.Wait();
-    }
-
     /// <summary>
     ///     This should run only in one thread.
     ///     This method will read from socket and update kcp frequently.
     /// </summary>
     private async Task UpdateLoop(CancellationToken token)
     {
+        try
+        {
+            while (!token.IsCancellationRequested)
+            {
+                if (!this.Alive) return;
+
+                var current = this.Current;
+
+                DateTimeOffset next;
+
+                // update is not thread-safe
+                var lockTaken = false;
+                try
+                {
+                    this._lock.Enter(ref lockTaken);
+
+                    this._kcp.Update(current);
+                    next = this._kcp.Check(current);
+                }
+                finally
+                {
+                    if (lockTaken) this._lock.Exit();
+                }
+
+                // wait
+                while (next > this.Current)
+                {
+                    if (token.IsCancellationRequested || !this.Alive) return;
+
+                    await Task.Yield();
+                    await UpdateData();
+                }
+
+                await UpdateData();
+            }
+        }
+        finally
+        {
+            Dispose(true);
+        }
+
         // read data from socket
         async Task UpdateData()
         {
@@ -157,40 +190,6 @@ public sealed class KcpSocket : ISocket, IKcpCallback
             {
                 ArrayPool<byte>.Shared.Return(rent);
             }
-        }
-
-        while (!token.IsCancellationRequested)
-        {
-            if (!this.Alive) return;
-
-            var current = this.Current;
-
-            DateTimeOffset next;
-
-            // update is not thread-safe
-            var lockTaken = false;
-            try
-            {
-                this._lock.Enter(ref lockTaken);
-
-                this._kcp.Update(current);
-                next = this._kcp.Check(current);
-            }
-            finally
-            {
-                if (lockTaken) this._lock.Exit();
-            }
-
-            // wait
-            while (next > this.Current)
-            {
-                if (token.IsCancellationRequested || !this.Alive) return;
-
-                await Task.Yield();
-                await UpdateData();
-            }
-
-            await UpdateData();
         }
     }
 

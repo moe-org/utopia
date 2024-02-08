@@ -1,16 +1,21 @@
 #region
 
+using System.Diagnostics;
 using System.Net;
 using Autofac;
 using Microsoft.Extensions.Logging;
 using Utopia.Core.Net;
+using Xunit.Abstractions;
 
 #endregion
 
 namespace Utopia.Core.Test.Net;
 
-public class UdpSocketTest
+[Collection("UDP Tests")]
+public class UdpSocketTest(ITestOutputHelper helper)
 {
+    public IContainer container = ContainerManager.GetContainerWithLogger(helper);
+
     public static (
         (IPEndPoint local, IPEndPoint remote),
         (IPEndPoint local, IPEndPoint remote)) Create()
@@ -39,6 +44,8 @@ public class UdpSocketTest
     [Fact]
     public async void UdpWriteAndReadTest()
     {
+        var logger = container.Resolve<ILogger<UdpSocketTest>>();
+
         var (sender, receiver) = GetSockets();
 
         Assert.True(sender.Alive);
@@ -46,8 +53,9 @@ public class UdpSocketTest
 
         Thread.Sleep(100);
 
-        var sent = new byte[1024];
-        Array.Clear(sent);
+        // equals to the max send buffer size
+        // and it equals to the max receive send buffer size
+        var sent = Enumerable.Repeat((byte)10, UDPSocket.MaxSendBufferSize).ToArray();
 
         await sender.Write(sent);
 
@@ -61,7 +69,12 @@ public class UdpSocketTest
         {
             var got = await receiver.Read(buffer);
 
-            memoryStream.Write(buffer, 0, got);
+            if(got != 0)
+            {
+                logger.LogDebug("UDP Socket Receive {} bytes",got);
+            }
+
+            memoryStream.Write(buffer, 0 ,got);
         }
 
         Assert.Equal(sent, memoryStream.ToArray());

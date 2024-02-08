@@ -14,6 +14,11 @@ namespace Utopia.Core.Net;
 
 public class UDPSocket : ISocket
 {
+    /// <summary>
+    /// 最大发送缓冲区大小，应该等于<see cref="GlobalUDPManager.MaxReceiveBufferSize"/>.
+    /// </summary>
+    public const int MaxSendBufferSize = GlobalUDPManager.MaxReceiveBufferSize;
+
     private readonly Socket _udpSocket;
 
     internal readonly Pipe ReceivePipe = new();
@@ -30,6 +35,8 @@ public class UDPSocket : ISocket
         this.Logger = logger;
 
         this._udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+        _udpSocket.SendBufferSize = MaxSendBufferSize;
 
         this.UdpManager = manager;
 

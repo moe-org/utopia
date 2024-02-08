@@ -6,7 +6,7 @@
   </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../Utopia.Core/Utopia.Core.csproj"/>
+        <ProjectReference Include="../src/Utopia.Core/Utopia.Core.csproj"/>
     </ItemGroup>
     
 </Project>

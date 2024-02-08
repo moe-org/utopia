@@ -1,5 +1,6 @@
 #region
 
+using System.Diagnostics;
 using System.Text;
 using Mingmoe.Demystifier;
 using NLog;
@@ -231,14 +232,23 @@ public static class LogManager
                 builder.Append(":");
                 builder.Append(logEvent.FormattedMessage);
 
+                StringBuilder stringBuilder = new(logEvent.FormattedMessage.Length + 256);
+                stringBuilder.Append("Log:");
+                stringBuilder.Append(logEvent.FormattedMessage);
+
                 if (logEvent.Exception != null)
                 {
                     // logEvent.Exception();
                     builder.AppendLine();
                     builder.AppendColoredDemystified(logEvent.Exception, StyledBuilderOption.GlobalOption);
+
+                    stringBuilder.Append("\n");
+                    stringBuilder.Append("Exception");
+                    stringBuilder.Append(logEvent.Exception.Demystify().ToString());
                 }
 
-                this.WriteLineAction?.Invoke(builder.ToString());
+                this.WriteLineAction?.Invoke(stringBuilder.ToString());
+
                 Console.Out.WriteLine(builder.ToString());
             }
             finally

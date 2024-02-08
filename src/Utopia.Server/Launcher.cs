@@ -6,9 +6,11 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using Autofac;
+using CommandLine;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using NLog.Fluent;
 using Npgsql;
 using Utopia.Core;
 using Utopia.Core.IO;
@@ -27,6 +29,27 @@ namespace Utopia.Server;
 /// </summary>
 public class Launcher
 {
+    private enum LogOption{ Default,Batch }
+
+    private Launcher()
+    {
+    }
+
+    private class CommandLineOption
+    {
+        [Option] public int Port { get; set; } = 1145;
+
+        [Option] public LogOption LogOption { get; set; } = LogOption.Default;
+
+        [Option] public string ServerRoot { get; set; } = ".";
+
+        [Option] public string? PostgreSQLConnection { get; set; } = null;
+
+        [Option] public string Culture { get; set; } = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+
+        [Option] public string Region { get; set; } = RegionInfo.CurrentRegion.TwoLetterISORegionName;
+    }
+
     /// <summary>
     /// 启动参数
     /// </summary>
@@ -36,11 +59,6 @@ public class Launcher
         /// 服务器端口
         /// </summary>
         public int Port { get; set; } = 1145;
-
-        /// <summary>
-        /// 是否跳过初始化log系统
-        /// </summary>
-        public bool SkipInitLog { get; set; } = false;
 
         /// <summary>
         /// If it's null,skip set up logging system
@@ -53,9 +71,9 @@ public class Launcher
         public IResourceLocator? FileSystem { get; set; } = null;
 
         /// <summary>
-        /// 数据库链接，must not be null
+        /// 数据库链接
         /// </summary>
-        public NpgsqlDataSource DatabaseSource { get; set; } = null!;
+        public NpgsqlDataSource? DatabaseSource { get; set; } = null;
 
         /// <summary>
         /// What language we want to use.
@@ -69,52 +87,38 @@ public class Launcher
     /// 使用字符串参数启动服务器
     /// </summary>
     /// <param name="args">命令行参数</param>
-    public static void LaunchWithArguments(string[] args)
+    public static LauncherOption ParseOptions(string[] args)
     {
         ArgumentNullException.ThrowIfNull(args, nameof(args));
+        LauncherOption option = new();
 
-        var option = new LauncherOption();
+        Parser.Default
+                        .ParseArguments<CommandLineOption>(args)
+                        .WithParsed((opt) =>
+                        {
+                            option.Port = opt.Port;
+                            option.FileSystem = new ResourceLocator(opt.ServerRoot);
 
-        int i = 0;
-        while (i != args.Length)
-        {
-            string arg = args[i++];
+                            if (option.DatabaseSource is not null)
+                            {
+                                var dataSourceBuilder = new NpgsqlDataSourceBuilder(opt.PostgreSQLConnection);
+                                dataSourceBuilder.UseLoggerFactory(new NLogLoggerFactory());
+                                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
 
-            if (arg == "--port")
-            {
-                if (i == args.LongLength)
-                {
-                    throw new ArgumentException("--port argument need one number");
-                }
-                option.Port = int.Parse(args[i++]);
-            }
-            else if (arg == "--skip-log-init")
-            {
-                option.SkipInitLog = true;
-            }
-            else if (arg == "--batch")
-            {
-                option.LogOption = LogManager.LogOption.CreateBatch();
-            }
-            else if (arg == "--postgreSql")
-            {
-                if (i == args.LongLength)
-                {
-                    throw new ArgumentException("--port argument need one number");
-                }
-                var dataSourceBuilder = new NpgsqlDataSourceBuilder(args[i++]);
-                _ = dataSourceBuilder.UseLoggerFactory(new
-                    NLog.Extensions.Logging.NLogLoggerFactory());
-                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
-                option.DatabaseSource = dataSource;
-            }
-            else
-            {
-                throw new ArgumentException("unknown command line argument:" + arg);
-            }
-        }
+                                option.DatabaseSource = dataSource;
+                            }
 
-        Launch(option);
+                            option.GlobalLanguage = new LanguageID(opt.Culture, opt.Region);
+
+                            option.LogOption = opt.LogOption switch
+                            {
+                                LogOption.Batch   => LogManager.LogOption.CreateBatch(),
+                                LogOption.Default => LogManager.LogOption.CreateDefault(),
+                                _                 => option.LogOption
+                            };
+                        });
+
+        return option;
     }
 
     private static IContainer _CreateContainer(LauncherOption option)
@@ -127,7 +131,7 @@ public class Launcher
             .SingleInstance()
             .As<LauncherOption>();
         builder
-            .RegisterInstance(option.FileSystem ?? new ResourceLocator())
+            .RegisterInstance(option.FileSystem ?? new ResourceLocator("."))
             .SingleInstance()
             .As<IResourceLocator>();
         builder
@@ -167,13 +171,13 @@ public class Launcher
             .SingleInstance()
             .As<IInternetListener>();
         builder
-            .RegisterType<ConcurrentDictionary<long, IWorld>>()
+            .RegisterType<ConcurrentDictionary<Guuid, IWorld>>()
             .SingleInstance()
-            .As<ConcurrentDictionary<long, IWorld>>();
+            .AsSelf();
         builder
             .RegisterType<ConcurrentDictionary<Guuid, IWorldFactory>>()
             .SingleInstance()
-            .As<ConcurrentDictionary<Guuid, IWorldFactory>>();
+            .AsSelf();
         builder
             .RegisterType<MainThread>()
             .AsSelf()
@@ -186,13 +190,14 @@ public class Launcher
         return builder.Build();
     }
     /// <summary>
-    /// 
+    /// 使用参数启动服务器。
     /// </summary>
-    /// <param name="option"></param>
-    /// <param name="startTokenSource">when the server started,cancel the token</param>
-    /// <returns></returns>
-    public static void Launch(LauncherOption option,CancellationTokenSource? startTokenSource = null)
+    /// <param name="option">参数</param>
+    /// <param name="startTask">启动task。将会在启动后complete.</param>
+    /// <returns>服务器主线程Task.会根据服务器运行状态设置<see cref="Task.IsCompleted"/>,<see cref="Task.Exception"/>等内容。</returns>
+    public static Task Launch(LauncherOption option,out Task startTask)
     {
+        // prepare
         ArgumentNullException.ThrowIfNull(option);
         if(option.LogOption != null)
         {
@@ -201,16 +206,32 @@ public class Launcher
 
         var container = _CreateContainer(option);
 
-        var headquarters = container.Resolve<MainThread>();
-
-        startTokenSource ??= new();
+        var mainThread = container.Resolve<MainThread>();
 
         // set an timer
+        startTask = mainThread.StartTask;
         TimeUtilities.SetAnNoticeWhenCancel(
-            container.Resolve<ILogger<Launcher>>(), "Server", startTokenSource.Token);
+            container.Resolve<ILogger<Launcher>>(), "Server", mainThread.StartTask);
 
-        headquarters.Launch(startTokenSource);
+        // start the main thread
+        TaskCompletionSource source = new();
+        var t = new Thread(() =>
+        {
+            try
+            {
+                mainThread.Launch();
+            }
+            catch (Exception e)
+            {
+                source.SetException(e);
+            }
+            finally
+            {
+                source.TrySetResult();
+            }
+        });
+
+        return source.Task;
     }
 
-    private static void Main(string[] args) => LaunchWithArguments(args);
 }

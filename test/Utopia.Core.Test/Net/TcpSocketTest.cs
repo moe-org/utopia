@@ -8,6 +8,7 @@ using Utopia.Core.Net;
 
 namespace Utopia.Core.Test.Net;
 
+[Collection("TCP Tests")]
 public class TcpSocketTest
 {
     public static (StandardSocket, StandardSocket) GetSockets()

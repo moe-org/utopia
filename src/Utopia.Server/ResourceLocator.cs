@@ -6,9 +6,9 @@ using Utopia.Core.IO;
 
 namespace Utopia.Server;
 
-public class ResourceLocator : Core.IO.ResourceLocator
+public class ResourceLocator(string root) : Core.IO.ResourceLocator
 {
-    public override string RootDirectory => Path.GetFullPath(".");
+    public override string RootDirectory => Path.GetFullPath(root);
 
     public override string? ServerDirectory => null;
 }

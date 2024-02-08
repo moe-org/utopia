@@ -13,5 +13,5 @@ public class PluginDependencyInformation : IPluginDependencyInformation
 
     public required Version Version { get; init; }
 
-    public required IEnumerable<(Guuid, Range)> Dependences { get; init; }
+    public required IEnumerable<(Guuid, Range)> Dependencies { get; init; }
 }

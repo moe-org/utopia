@@ -20,7 +20,7 @@ public partial class QueryBlockPacket
 
 public class QueryBlockPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = Guuid.GetInternalGuuid("Net", "Packet", "QueryBlock");
+    public static readonly Guuid PacketTypeId = InternalHelper.NewInternalGuuid("Net", "Packet", "QueryBlock");
 
     public object GetValue(Guuid _, ReadOnlySequence<byte> packet)
     {

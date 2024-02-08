@@ -10,5 +10,9 @@
     <ItemGroup>
         <ProjectReference Include="../Utopia.Core/Utopia.Core.csproj"/>
     </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    </ItemGroup>
 
 </Project>

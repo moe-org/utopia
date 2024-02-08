@@ -78,7 +78,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
 
             searching[plugin] = true;
 
-            foreach (var deps in plugin.Info.Dependences)
+            foreach (var deps in plugin.Info.Dependencies)
                 try
                 {
                     search(allPlugins![deps.Item1]);

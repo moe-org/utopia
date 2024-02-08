@@ -17,17 +17,15 @@ namespace Utopia.Server;
 
 public sealed class MainThread
 {
-    private readonly CancellationTokenSource _logicThreadStartWaitTokenSource = new();
-
-    private readonly CancellationTokenSource _internetThreadStartWaitTokenSource = new();
-
     public required ILogger<MainThread> Logger { get; init; }
 
     public required IEventBus EventBus { get; init; }
 
+    public required IPluginProvider PluginProvider { get; init; }
+
     public required IPluginLoader<IPlugin> PluginLoader { get; init; }
 
-    public required IResourceLocator FileSystem { get; init; }
+    public required IResourceLocator ResourceLocator { get; init; }
 
     public required ILifetimeScope Container { get; init; }
 
@@ -45,79 +43,12 @@ public sealed class MainThread
 
     public LifeCycle CurrentLifeCycle { get; private set; }
 
-    private void _StartLogicThread()
-    {
-        var logicT = new Thread(() =>
-        {
-            KeyValuePair<long, IWorld>[] worlds = Worlds.ToArray();
-            foreach (KeyValuePair<long, IWorld> world in worlds)
-            {
-                LogicThread.Updatables.Add(world.Value);
-            }
-            // 注册关闭事件
-            EventBus.Register<LifeCycleEvent<LifeCycle>>((cycle) =>
-            {
-                if (cycle is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.After })
-                {
-                    LogicThread.StopTokenSource.Cancel();
-                }
-            });
-            try
-            {
-                ((StandardLogicThread)LogicThread).Run(_logicThreadStartWaitTokenSource);
-            }
-            catch(Exception ex)
-            {
-                Logger.LogError(ex, "Logic Thread Crashed");
-            }
-            finally {
-                LogicThread.StopTokenSource.Cancel();
-            }
-        })
-        {
-            Name = "Server Logic Thread"
-        };
-        logicT.Start();
-    }
-
+    private readonly TaskCompletionSource _startFinishSource = new();
 
     /// <summary>
-    /// 启动网络线程
+    /// 启动任务。当此任务完成的时候代表服务器已经完成启动。
     /// </summary>
-    private void _StartNetworkThread()
-    {
-        InternetListener.Listen(Option.Port);
-        Logger.LogInformation("listen to {port}", Option.Port);
-
-        InternetMain netThread = (InternetMain)InternetMain;
-        var thread = new Thread( () =>
-        {
-            // 注册关闭事件
-            EventBus.Register<LifeCycleEvent<LifeCycle>>((cycle) =>
-            {
-                if (cycle is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.After })
-                {
-                    netThread.StopTokenSource.Cancel();
-                }
-            });
-            try
-            {
-                netThread.Run(_internetThreadStartWaitTokenSource).Wait();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "Internet Thread Crashed");
-            }
-            finally
-            {
-                netThread.StopTokenSource.Cancel();
-            }
-        })
-        {
-            Name = "Server Networking Thread"
-        };
-        thread.Start();
-    }
+    public Task StartTask => _startFinishSource.Task;
 
     public void _LoadSave()
     {
@@ -133,105 +64,66 @@ public sealed class MainThread
     /// <summary>
     /// 使用参数启动服务器
     /// </summary>
-    /// <param name="startTokenSource">when the server started,cancel the token</param>
-    public void Launch(CancellationTokenSource startTokenSource)
+    public void Launch()
     {
-        ArgumentNullException.ThrowIfNull(startTokenSource);
-
         Thread.CurrentThread.Name = "Server Main Thread";
 
-        FileSystem.CreateIfNotExist();
+        ResourceLocator.CreateIfNotExist();
 
         try
         {
-            ChangeLifecycle(LifeCycle.InitializedSystem, () => { });
+            ChangeLifecycle(LifeCycle.InitializedSystem);
 
             // 加载插件
-            /*
-            ChangeLifecycle(LifeCycle.LoadPlugin, () =>
-            {
-                PluginLoader.AddPlugin(
-                    PluginHelper.BuildPluginFromType(
-                        typeof(Plugin.Plugin),
-                        FileSystem.RootDirectory,
-                        null,
-                        string.IsNullOrWhiteSpace(Assembly.GetExecutingAssembly().Location)
-                            ? null
-                            : Assembly.GetExecutingAssembly().Location,
-                        new()));
-
-                foreach(var plugin in
-                    PluginHelper.LoadAllPackedPluginsFromDirectory(
-                        FileSystem.PackedPluginsDirectory))
-                {
-                    PluginLoader.AddPlugin(plugin);
-                }
-                PluginLoader.ActiveAllPlugins();
-            });
-            */
+            // ChangeLifecycle(LifeCycle.LoadPlugin, () =>
+//            {
+  //              var plugins = PluginProvider.GetAllPluginsFrom(ResourceLocator.PluginsDirectory);
+//
+  //              PluginLoader.Activate(plugins);
+//            });
 
             // 创建世界
-            ChangeLifecycle(LifeCycle.LoadSavings, _LoadSave);
+            ChangeLifecycle(LifeCycle.LoadSavings);
 
             // 设置逻辑线程
-            TimeUtilities.SetAnNoticeWhenCancel(
-                Logger, "Logic Thread", _logicThreadStartWaitTokenSource.Token);
-            ChangeLifecycle(LifeCycle.StartLogicThread, _StartLogicThread);
+            ChangeLifecycle(LifeCycle.StartLogicThread);
 
             // 设置网络线程
-            TimeUtilities.SetAnNoticeWhenCancel(
-                Logger, "Internet Thread", _internetThreadStartWaitTokenSource.Token);
-            ChangeLifecycle(LifeCycle.StartNetThread, _StartNetworkThread);
+            ChangeLifecycle(LifeCycle.StartNetThread);
 
             var wait = new SpinWait();
 
-            var netToken = InternetMain.StopTokenSource;
-            var logicToken = LogicThread.StopTokenSource;
-
-            using var stopTokenSource = CancellationTokenSource.CreateLinkedTokenSource(netToken.Token, logicToken.Token);
-
-            // wait for starting
-            while (!(_internetThreadStartWaitTokenSource.IsCancellationRequested
-                && _logicThreadStartWaitTokenSource.IsCancellationRequested))
-            {
-                wait.SpinOnce();
-
-                // 出师未捷身先死
-                if (stopTokenSource.IsCancellationRequested)
-                {
-                    return;
-                }
-            }
-            startTokenSource.CancelAfter(100/* wait for fun :-) */);
+            // finish
+            _startFinishSource.SetResult();
 
             // stop when any of threads stop
-            while (!stopTokenSource.IsCancellationRequested)
-            {
-                wait.SpinOnce();
-            }
+            var task = Task.WhenAll(LogicThread.Task, InternetMain.Task);
+
+            task.Wait();
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "the server crash");
-            ChangeLifecycle(LifeCycle.Crash, () => { });
+            ChangeLifecycle(LifeCycle.Crash);
+            throw;
         }
         finally
         {
             Logger.LogInformation("stop");
-            ChangeLifecycle(LifeCycle.Stop, () => { });
+            ChangeLifecycle(LifeCycle.Stop);
         }
 
         return;
 
-        void ChangeLifecycle(LifeCycle lifeCycle, Action action)
+        void ChangeLifecycle(LifeCycle lifeCycle)
         {
             LifeCycleEvent<LifeCycle>.EnterCycle(
                                                  lifeCycle,
-                                                 action,
-                                                 this.Logger,
-                                                 this.EventBus, () =>
+                                                 Logger,
+                                                 EventBus,
+                                                 () =>
                                                  {
-                                                     this.CurrentLifeCycle = lifeCycle;
+                                                     CurrentLifeCycle = lifeCycle;
                                                  });
         }
     }

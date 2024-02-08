@@ -27,12 +27,22 @@ internal class InternetListener : IInternetListener
     private int? _port = null;
     private readonly object _lock = new();
 
+    public InternetListener(IEventBus eventBus,Launcher.LauncherOption option,ILogger<InternetListener> logger)
+    {
+        eventBus.Register<LifeCycleEvent<LifeCycle>>(
+        _ =>
+        {
+            logger.LogInformation("listen port {port}",option.Port);
+            Listen(option.Port);
+        });
+    }
+
     public event Action<SocketAcceptEvent> AcceptEvent
     {
         add=> this._source.Register(value);
         remove=> this._source.Unregister(value);
     }
-    
+
     public int Port
     {
         get
@@ -54,7 +64,7 @@ internal class InternetListener : IInternetListener
             }
         }
     }
-    
+
     public async Task<ISocket> Accept()
     {
         lock (_lock)
@@ -79,7 +89,7 @@ internal class InternetListener : IInternetListener
         {
             throw new InvalidOperationException("can not listen after disposing");
         }
-        
+
         lock (_lock)
         {
             if (this._port != null)
@@ -88,7 +98,7 @@ internal class InternetListener : IInternetListener
             }
 
             _port = port;
-            
+
             this._socket.Bind(new IPEndPoint(IPAddress.Any, port));
         }
     }
@@ -104,7 +114,7 @@ internal class InternetListener : IInternetListener
         GC.SuppressFinalize(this);
     }
 
-    protected void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_disposed)
         {
@@ -115,9 +125,9 @@ internal class InternetListener : IInternetListener
         {
             lock (_lock)
             {
+                _port = null;
                 _socket.Close();
                 _socket.Dispose();
-                _port = null;
             }
         }
 

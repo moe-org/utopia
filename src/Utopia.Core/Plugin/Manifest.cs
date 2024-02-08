@@ -6,27 +6,26 @@ using System.Xml.Serialization;
 
 namespace Utopia.Core.Plugin;
 
-public class PluginDependency
+public class DependencyOfPluginInManifest
 {
-    [XmlElement] public XmlGuuid PluginId = new();
+    [XmlElement] public XmlGuuid Id = new();
 
     [XmlElement] public string RequiredVersionRange = string.Empty;
 }
 
-public class PluginManifestWithDependency
+public class PluginInfoInManifest
 {
     [XmlElement] public string TypeName = string.Empty;
 
-    [XmlElement] public string[] AssemblyLoad = [];
+    [XmlElement] public string[] Assemblies = [];
 
-    [XmlElement] public XmlGuuid PluginId = new();
+    [XmlElement] public XmlGuuid Id = new();
 
-
-    [XmlElement] public string PluginVersion { get; set; } = string.Empty;
+    [XmlElement] public string Version { get; set; } = string.Empty;
 
     [XmlArray("Dependencies")]
     [XmlArrayItem("Dependency")]
-    public PluginDependency[] Dependencies { get; set; } = [];
+    public DependencyOfPluginInManifest[] Dependencies { get; set; } = [];
 }
 
 /// <summary>
@@ -35,5 +34,5 @@ public class PluginManifestWithDependency
 [XmlRoot]
 public class Manifest
 {
-    [XmlElement] public PluginManifestWithDependency[] Plugins { get; set; } = [];
+    [XmlElement] public PluginInfoInManifest[] Plugins { get; set; } = [];
 }

@@ -25,7 +25,7 @@ public partial class BlockInfoPacket
 
 public class BlockInfoPacketFormatter : IPacketFormatter
 {
-    public static readonly Guuid PacketTypeId = Guuid.GetInternalGuuid("Net", "Packet", "BlockInformation");
+    public static readonly Guuid PacketTypeId = InternalHelper.NewInternalGuuid("Net", "Packet", "BlockInformation");
 
     public Guuid Id => PacketTypeId;
 

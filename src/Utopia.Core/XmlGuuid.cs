@@ -14,6 +14,8 @@ namespace Utopia.Core;
 [XmlSchemaProvider(nameof(GetGuuidSchemaOfType))]
 public sealed class XmlGuuid : IXmlSerializable
 {
+    public Guuid Guuid { get; set; } = Guuid.Empty;
+
     public XmlGuuid()
     {
     }
@@ -22,8 +24,6 @@ public sealed class XmlGuuid : IXmlSerializable
     {
         this.Guuid = guuid;
     }
-
-    public Guuid Guuid { get; set; } = Guuid.Empty;
 
     public XmlSchema? GetSchema()
     {
@@ -71,5 +71,15 @@ public sealed class XmlGuuid : IXmlSerializable
         }
 
         return type;
+    }
+
+    /// <summary>
+    /// 隐式转换到<see cref="Guuid"/>
+    /// </summary>
+    /// <param name="guuid"></param>
+    /// <returns></returns>
+    public static explicit operator Guuid(XmlGuuid guuid)
+    {
+        return guuid.Guuid;
     }
 }

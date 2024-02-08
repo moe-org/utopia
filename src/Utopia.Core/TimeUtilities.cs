@@ -23,15 +23,26 @@ public static class TimeUtilities
     {
         Stopwatch stopwatch = new();
         stopwatch.Start();
+        source.Register(() =>
+        {
+            stopwatch.Stop();
+            logger.LogInformation(
+                "{name} completed,using {use time} s",name,stopwatch.Elapsed.TotalSeconds);
+        });
+    }
+    public static void SetAnNoticeWhenCancel(ILogger logger,string name,Task source)
+    {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
         Task.Run(async () =>
         {
-            while (!source.IsCancellationRequested)
+            while (!source.IsCompleted)
             {
                 await Task.Delay(50);
             }
             stopwatch.Stop();
             logger.LogInformation(
-                $"{name} finished,using {stopwatch.Elapsed.TotalSeconds} s");
+                "{name} completed,using {use time} s",name,stopwatch.Elapsed.TotalSeconds);
         });
     }
 
