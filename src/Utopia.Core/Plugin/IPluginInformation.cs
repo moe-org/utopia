@@ -24,4 +24,9 @@ public interface IPluginInformation : IPluginDependencyInformation
     ///     网址，或者其他联系方式等。
     /// </summary>
     string Homepage { get; }
+
+    /// <summary>
+    /// 作者
+    /// </summary>
+    string Author { get; }
 }

@@ -22,7 +22,7 @@ public sealed class LanguageID
     public readonly string Location;
 
     /// <summary>
-    ///     构造一个翻译条目
+    ///     构造一个语言标识条目
     /// </summary>
     /// <param name="language">ISO 639-1标准语言代码(Two letter)</param>
     /// <param name="location">ISO 3166-1标准地区代码(Two letter)</param>

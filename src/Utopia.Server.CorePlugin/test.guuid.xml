@@ -1,12 +1,12 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
-<GuuidDeclaration>
+<?xml version="1.0" encoding="UTF-8" ?>
+<Guuids>
   <Namespace>Utopia.Server.CorePlugin</Namespace>
 
-  <Declarations>
-    <Declaration>
-      <Guuid>Utopia:Test</Guuid>
-      <Description>A Test</Description>
-      <CSharpName>Test</CSharpName>
-    </Declaration>
-  </Declarations>
-</GuuidDeclaration>
+  <Items>
+    <Item>
+      <Name>Test</Name>
+      <Value>Utopia.Test</Value>
+      <Desc>A Test</Desc>
+    </Item>
+  </Items>
+</Guuids>

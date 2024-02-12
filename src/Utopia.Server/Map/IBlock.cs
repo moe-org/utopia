@@ -34,7 +34,7 @@ public interface IBlock : ICanSave<byte[]>
 
     bool IsEmpty();
 
-    long EntityCount { get; }
+    int EntityCount { get; }
 
     IReadOnlyCollection<IEntity> GetAllEntities();
 

@@ -8,6 +8,7 @@ using System.Text;
 using Cysharp.Text;
 using MemoryPack;
 using Utopia.Core.Exceptions;
+using Utopia.Shared;
 
 #endregion
 
@@ -25,20 +26,6 @@ namespace Utopia.Core;
 [MemoryPackable]
 public readonly partial struct Guuid : IEnumerable<string>
 {
-    /// <summary>
-    ///     Use this regex pattern to check the guuid string
-    /// </summary>
-    public const string Pattern = @"^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$";
-
-    /// <summary>
-    ///     utopia游戏所使用的GUUID的root.
-    /// </summary>
-    public const string UtopiaRoot = "Utopia";
-
-    /// <summary>
-    ///     Will use this to separate root and each namespaces when use the string of Guuid.
-    /// </summary>
-    public const string Separator = ".";
 
     public static readonly Guuid Empty = new("Empty", "Empty");
 
@@ -63,7 +50,7 @@ public readonly partial struct Guuid : IEnumerable<string>
         ArgumentNullException.ThrowIfNull(guuid);
         if (string.IsNullOrEmpty(guuid)) return false;
 
-        var nodes = guuid.Split(Separator);
+        var nodes = guuid.Split(GuuidStandard.Separator);
 
         // 至少要存在一个root和一个node
         return nodes.Length >= 2 && CheckGuuid(nodes.First(), nodes[1..]);
@@ -126,7 +113,7 @@ public readonly partial struct Guuid : IEnumerable<string>
         foreach (var node in this.Nodes)
         {
 #pragma warning disable CA1834 // Consider using 'StringBuilder.Append(char)' when applicable
-            builder.Append(Separator);
+            builder.Append(GuuidStandard.Separator);
             builder.Append(node);
 #pragma warning restore CA1834 // Consider using 'StringBuilder.Append(char)' when applicable
         }
@@ -163,7 +150,7 @@ public readonly partial struct Guuid : IEnumerable<string>
         result = null;
         errorMessage = null;
 
-        var nodes = s.Split(Separator);
+        var nodes = s.Split(GuuidStandard.Separator);
 
         if (nodes.Length < 2)
         {

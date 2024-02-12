@@ -4,19 +4,19 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+
+        <!-- for test -->
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>obj</CompilerGeneratedFilesOutputPath>
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="test.guuid.xml" />
-    </ItemGroup>
-
-    <ItemGroup>
       <AdditionalFiles Include="test.guuid.xml" />
+      <AdditionalFiles Include="server.plugin.xml" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="../Utopia.Server/Utopia.Server.csproj" />
-
       <ProjectReference Include="../Utopia.Analyzer/Utopia.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 

@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using Autofac;
+using AutoMapper;
 using CommandLine;
 using CommunityToolkit.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -96,6 +97,7 @@ public class Launcher
                         .ParseArguments<CommandLineOption>(args)
                         .WithParsed((opt) =>
                         {
+                            // TODO: REPLACE WITH AUTOMAPPER
                             option.Port = opt.Port;
                             option.FileSystem = new ResourceLocator(opt.ServerRoot);
 

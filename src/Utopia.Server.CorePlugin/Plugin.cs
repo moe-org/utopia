@@ -1,32 +1,28 @@
-﻿// This file is a part of the project Utopia(Or is a part of its subproject).
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core;
-using Range = SemanticVersioning.Range;
-using Version = SemanticVersioning.Version;
 
 namespace Utopia.Server.CorePlugin;
 
-public sealed class Plugin : IPlugin
+public partial class Plugin : IPlugin
 {
     private bool _disposed = false;
 
-    public Guuid Id { get; }
+    private WeakThreadSafeEventSource _source = new();
 
-    public Version Version { get; }
-
-    public IEnumerable<(Guuid, Range)> Dependencies { get; }
-
-    public string Name { get; }
-
-    public string Description { get; }
-
-    public string License { get; }
-
-    public string Homepage { get; }
-
-    public event Action? PluginDeactivated;
+    public event Action PluginDeactivated
+    {
+        add
+        {
+            _source.Register(value);
+        }
+        remove
+        {
+            _source.Unregister(value);
+        }
+    }
 
     ~Plugin()
     {
@@ -46,7 +42,11 @@ public sealed class Plugin : IPlugin
             return;
         }
 
+        if (disposing)
+        {
+            _source.Fire();
+        }
+
         _disposed = true;
     }
-
 }

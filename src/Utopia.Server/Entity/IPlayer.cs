@@ -6,6 +6,9 @@ using Utopia.Core.Net;
 
 namespace Utopia.Server.Entity;
 
+/// <summary>
+/// 一个“玩家”实体
+/// </summary>
 public interface IPlayer : IEntity
 {
     public IConnectHandler ConnectHandler { get; }

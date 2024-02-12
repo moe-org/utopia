@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3 uid="uid://bpka4d3qp0ina"]
+
+[ext_resource type="Script" path="res://src/GameStart.cs" id="1_dwwbt"]
+
+[node name="GameStart" type="Node2D"]
+script = ExtResource("1_dwwbt")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -294.0
+offset_top = 343.0
+offset_right = 299.0
+offset_bottom = 417.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -141.0
+offset_top = -23.0
+offset_right = -141.0
+offset_bottom = -23.0
+
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_left = -141.0
+offset_top = -23.0
+offset_right = -141.0
+offset_bottom = -23.0

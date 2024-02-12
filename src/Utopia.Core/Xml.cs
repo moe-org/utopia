@@ -14,7 +14,7 @@ namespace Utopia.Core;
 public static class Xml
 {
     /// <summary>
-    ///     For utopia
+    ///     For moe
     /// </summary>
     public const string Namespace = "http://utopia.kawayi.moe";
 

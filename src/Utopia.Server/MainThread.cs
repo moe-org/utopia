@@ -35,7 +35,7 @@ public sealed class MainThread
 
     public required IInternetMain InternetMain { get; init; }
 
-    public required IInternetListener InternetListener { get;init; }
+    public required IInternetListener InternetListener { get; init; }
 
     public required ConcurrentDictionary<long, IWorld> Worlds { get; init; }
 
@@ -46,7 +46,7 @@ public sealed class MainThread
     private readonly TaskCompletionSource _startFinishSource = new();
 
     /// <summary>
-    /// 启动任务。当此任务完成的时候代表服务器已经完成启动。
+    /// 启动任务。当此任务完成的时候代表服务器已经完成启动。但是此任务不指示服务器状态（包括停止，异常等）。
     /// </summary>
     public Task StartTask => _startFinishSource.Task;
 
@@ -76,11 +76,11 @@ public sealed class MainThread
 
             // 加载插件
             // ChangeLifecycle(LifeCycle.LoadPlugin, () =>
-//            {
-  //              var plugins = PluginProvider.GetAllPluginsFrom(ResourceLocator.PluginsDirectory);
-//
-  //              PluginLoader.Activate(plugins);
-//            });
+            //            {
+            //              var plugins = PluginProvider.GetAllPluginsFrom(ResourceLocator.PluginsDirectory);
+            //
+            //              PluginLoader.Activate(plugins);
+            //            });
 
             // 创建世界
             ChangeLifecycle(LifeCycle.LoadSavings);
@@ -90,8 +90,6 @@ public sealed class MainThread
 
             // 设置网络线程
             ChangeLifecycle(LifeCycle.StartNetThread);
-
-            var wait = new SpinWait();
 
             // finish
             _startFinishSource.SetResult();

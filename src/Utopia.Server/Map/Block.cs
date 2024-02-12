@@ -47,7 +47,7 @@ public class Block(WorldPosition position) : IBlock
         return _entities.Any((e) => e.Id.Equals(idOfEntity));
     }
 
-    public long EntityCount => _entities.Count;
+    public int EntityCount => _entities.Count;
 
     public IReadOnlyCollection<IEntity> GetAllEntities()
     {
@@ -59,7 +59,7 @@ public class Block(WorldPosition position) : IBlock
     {
         var removed = _entities.TakeWhile((e) => e.Id.Equals(idOfEntity));
 
-        foreach(var item in removed)
+        foreach (var item in removed)
         {
             RemoveEntity(item);
         }

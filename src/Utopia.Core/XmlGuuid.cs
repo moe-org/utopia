@@ -3,6 +3,7 @@
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using Utopia.Shared;
 
 #endregion
 
@@ -64,7 +65,7 @@ public sealed class XmlGuuid : IXmlSerializable
             restriction.BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
             {
                 XmlSchemaPatternFacet facet = new();
-                facet.Value = Guuid.Pattern;
+                facet.Value = GuuidStandard.Pattern;
                 restriction.Facets.Add(facet);
             }
             type.Content = restriction;

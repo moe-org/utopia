@@ -1,11 +1,12 @@
 using System.Text.RegularExpressions;
+using Utopia.Shared;
 
 namespace Utopia.Core.Test;
 
 public class GuuidTest
 {
-    private readonly Regex _pattern = new Regex(Guuid.Pattern);
-    
+    private readonly Regex _pattern = new Regex(GuuidStandard.Pattern);
+
     [Fact]
     public void TestGuuidToStringAndParseStringWorksWell()
     {

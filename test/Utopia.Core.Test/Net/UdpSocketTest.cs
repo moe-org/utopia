@@ -41,8 +41,7 @@ public class UdpSocketTest(ITestOutputHelper helper)
             new UDPSocket(server.local, server.remote, logger, manager));
     }
 
-    [Fact]
-    public async void UdpWriteAndReadTest()
+    private static async Task TestFor(byte[] data, IContainer container)
     {
         var logger = container.Resolve<ILogger<UdpSocketTest>>();
 
@@ -55,7 +54,7 @@ public class UdpSocketTest(ITestOutputHelper helper)
 
         // equals to the max send buffer size
         // and it equals to the max receive send buffer size
-        var sent = Enumerable.Repeat((byte)10, UDPSocket.MaxSendBufferSize).ToArray();
+        var sent = data;
 
         await sender.Write(sent);
 
@@ -69,12 +68,12 @@ public class UdpSocketTest(ITestOutputHelper helper)
         {
             var got = await receiver.Read(buffer);
 
-            if(got != 0)
+            if (got != 0)
             {
-                logger.LogDebug("UDP Socket Receive {} bytes",got);
+                logger.LogDebug("UDP Socket Receive {} bytes", got);
             }
 
-            memoryStream.Write(buffer, 0 ,got);
+            memoryStream.Write(buffer, 0, got);
         }
 
         Assert.Equal(sent, memoryStream.ToArray());
@@ -86,10 +85,18 @@ public class UdpSocketTest(ITestOutputHelper helper)
         Assert.False(sender.Alive);
 
         // send and no receive
-        await sender.Write((byte[]) [1, 1]);
+        await sender.Write((byte[])[1, 1]);
         Thread.Sleep(10);
         var received = await receiver.Read(new byte[2]);
 
         Assert.Equal(0, received);
+
+    }
+
+    [Fact]
+    public async void UdpWriteAndReadTest()
+    {
+        var bytes = Enumerable.Repeat((byte)10, 512).ToArray();
+        await TestFor(bytes, container);
     }
 }

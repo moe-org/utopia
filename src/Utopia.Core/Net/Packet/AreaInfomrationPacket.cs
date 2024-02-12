@@ -10,7 +10,7 @@ using Utopia.Core.Map;
 namespace Utopia.Core.Net.Packet;
 
 [MemoryPackable]
-public partial class BlockInfoPacket
+public partial class AreaInfomrationPacket
 {
     public Guuid[] Entities { get; set; } = Array.Empty<Guuid>();
 
@@ -31,13 +31,13 @@ public class BlockInfoPacketFormatter : IPacketFormatter
 
     public object GetValue(Guuid _, ReadOnlySequence<byte> packet)
     {
-        return MemoryPackSerializer.Deserialize<BlockInfoPacket>(packet)!;
+        return MemoryPackSerializer.Deserialize<AreaInfomrationPacket>(packet)!;
     }
 
     public Memory<byte> ToPacket(Guuid _, object value)
     {
         Guard.IsNotNull(value);
-        Guard.IsAssignableToType(value, typeof(BlockInfoPacket));
-        return MemoryPackSerializer.Serialize((BlockInfoPacket)value);
+        Guard.IsAssignableToType(value, typeof(AreaInfomrationPacket));
+        return MemoryPackSerializer.Serialize((AreaInfomrationPacket)value);
     }
 }

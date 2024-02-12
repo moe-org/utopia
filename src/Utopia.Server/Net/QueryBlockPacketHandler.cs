@@ -30,13 +30,13 @@ public class QueryBlockPacketHandler : IPacketHandler
         {
             // using var _ = block!.EnterReadLock();
 
-            var info = new BlockInfoPacket();
+            var info = new AreaInfomrationPacket();
             IReadOnlyCollection<IEntity> entities = block!.GetAllEntities();
             info.Collidable = block.HasCollision;
             info.Accessible = block.Accessible;
             info.Position = query.QueryPosition;
             info.Entities = entities.Select((i) => i.Id).ToArray();
-            info.EntityData = entities.Select((i) => i.ClientOnlyData()).ToArray();
+            info.EntityData = entities.Select((i) => i.SaveAs()).ToArray();
 
             ConnectHandler.WritePacket(BlockInfoPacketFormatter.PacketTypeId, info);
         }

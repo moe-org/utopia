@@ -18,15 +18,14 @@ public class KcpUdpTest
         return new ValueTuple<KcpSocket, KcpSocket>(new KcpSocket(one), new KcpSocket(two));
     }
 
-    [Fact]
-    public async Task KcpUdpWriteAndReadTest()
+    private static async Task TestFor(byte[] data)
     {
         var (sender, receiver) = GetSockets();
 
         Assert.True(sender.Alive);
         Assert.True(receiver.Alive);
 
-        var bytes = Enumerable.Repeat((byte)10, 128).ToArray();
+        var bytes = data;
 
         await sender.Write(bytes);
 
@@ -52,10 +51,18 @@ public class KcpUdpTest
         Assert.False(sender.Alive);
 
         // send and no receive
-        await sender.Write((byte[]) [1, 1]);
+        await sender.Write((byte[])[1, 1]);
         Thread.Sleep(10);
         var received = await receiver.Read(new byte[2]);
 
         Assert.Equal(0, received);
+    }
+
+    [Fact]
+    public async Task KcpUdpWriteAndReadTest()
+    {
+        var bytes = Enumerable.Repeat((byte)10, 512).ToArray();
+
+        await TestFor(bytes);
     }
 }

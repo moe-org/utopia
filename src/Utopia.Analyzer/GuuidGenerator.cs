@@ -13,19 +13,37 @@ using Microsoft.CodeAnalysis;
 
 namespace Utopia.Analyzer;
 
+public class GuuidItem
+{
+    [XmlElement]
+    public string? Name = null;
+
+    [XmlElement]
+    public string Value = "No Guuid Definitation";
+
+    [XmlElement]
+    public string Desc = "No description";
+}
+
+[XmlRoot("Guuids")]
+public class GuuidDeclarationRoot
+{
+    [XmlElement]
+    public string Namespace = "Utopia";
+
+    [XmlElement]
+    public string Class = "GuuidDeclarations";
+
+    [XmlArray("Items")]
+    [XmlArrayItem("Item")]
+    public GuuidItem[] Items = [];
+}
+
 [Generator]
 public class GuuidGenerator : ISourceGenerator
 {
-    /// <summary>
-    /// copied
-    /// </summary>
-    public const string Pattern = @"^[a-zA-Z]{1}[a-zA-Z0-9]*(\.[a-zA-Z]{1}[a-zA-Z0-9]*)+$";
-
-    private Regex _regex = new Regex(Pattern);
-
     public void Initialize(GeneratorInitializationContext context)
     {
-
     }
 
     private void ExecuteFor(GeneratorExecutionContext context, GuuidDeclarationRoot root, string id)
@@ -45,82 +63,44 @@ namespace {root.Namespace};
 public static partial class {root.Class}{{
 ");
 
+        // add declarations
         foreach (var declaration in root.Items)
         {
-            // test guuid
-            if (!_regex.IsMatch(declaration.Guuid))
-            {
-                context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
-                                                               "UTOPIA02",
-                                                               "The guuid format is illegal",
-                                                               "The guuid format is illegal:{0}",
-                                                               "Utopia Guuid Generate",
-                                                               DiagnosticSeverity.Error,
-                                                               true),
-                                                           null, declaration.Guuid));
-            }
+            DiagnosticHelper.CheckGuuidFormat(declaration.Value, context);
 
-            builder.AppendLine($"\t// {declaration.Description}");
+            builder.AppendLine($"\t// {declaration.Desc}");
             builder.AppendLine(
-                $"\tpublic static Guuid {declaration.CSharpName ?? $"No CSharpName Found at {declaration.Guuid}!!!"} = " +
-                $"Guuid.Parse(\"{declaration.Guuid}\");");
+                $"\tpublic static readonly Guuid {declaration.Name ?? $"No CSharpName Found at {declaration.Value}"} = " +
+                $"Guuid.Parse(\"{declaration.Value}\");");
         }
 
-        builder.Append("}");
+        builder.AppendLine("}");
 
-        var sha256 = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(id));
-
-        string name = "";
-
-        foreach (var b in sha256)
-        {
-            name += b.ToString("x2");
-        }
+        string name = Path.GetFileName(id);
 
         context.AddSource($"{name}.g.cs", builder.ToString());
     }
 
     public void Execute(GeneratorExecutionContext context)
     {
-        var files = context.AdditionalFiles.TakeWhile(f => Path.GetFullPath(f.Path).EndsWith(".guuid.xml")).ToArray();
+        var files = context.AdditionalFiles.Where(f =>
+                                                          Path.GetFullPath(f.Path)
+                                                              .ToLowerInvariant()
+                                                              .Trim()
+                                                              .EndsWith(".guuid.xml")).ToArray();
 
         XmlSerializer serializer = new XmlSerializer(typeof(GuuidDeclarationRoot));
 
         foreach (var file in files)
         {
-            var text = file.GetText();
-
-            if (text == null)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
-                                                               "UTOPIA00",
-                                                               "can not read file",
-                                                               "AdditionalText.GetText() returns null at file:{0}",
-                                                               "Utopia Guuid Generate",
-                                                               DiagnosticSeverity.Error,
-                                                               true),
-                                             null, file.Path));
-                continue;
-            }
-
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text.ToString()));
-
-            var root = (GuuidDeclarationRoot)serializer.Deserialize(stream);
+            var root = Utility.DeserializeXml<GuuidDeclarationRoot>(file, context);
 
             if (root is null)
             {
-                context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
-                                                               "UTOPIA01",
-                                                               "Deserialize returns null",
-                                                               "Deserialize() returns null at file:{0}",
-                                                               "Utopia Guuid Generate",
-                                                               DiagnosticSeverity.Error,
-                                                               true),
-                                             null, file.Path));
                 continue;
             }
 
-            ExecuteFor(context,root,file.Path);
+            ExecuteFor(context, root, file.Path);
         }
     }
 }

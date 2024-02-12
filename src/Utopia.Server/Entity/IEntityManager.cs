@@ -19,12 +19,15 @@ public interface IEntityManager
     /// </summary>
     IReadOnlyDictionary<Guuid, (IEntityInformation,IEntityFactory)> Entities { get; }
 
-    /// <returns>true if add successfully,otherwise false. If a entity was registered before,it return false</returns>
+    /// <returns>true if add successfully,otherwise false. If a entity was registered before,it return false.</returns>
     bool Register(Guuid entityId, IEntityInformation information, IEntityFactory factory);
 
     bool TryGet(Guuid entityId, out (IEntityInformation, IEntityFactory) get);
 }
 
+/// <summary>
+/// 实体管理器。
+/// </summary>
 public class EntityManager : IEntityManager
 {
     private ConcurrentDictionary<Guuid, (IEntityInformation,IEntityFactory)> _all = new();
