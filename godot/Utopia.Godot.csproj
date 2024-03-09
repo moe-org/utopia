@@ -5,5 +5,8 @@
     <Nullable>enable</Nullable>
     <LangVersion>Latest</LangVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\Utopia.Core\Utopia.Core.csproj" />
+  </ItemGroup>
 
 </Project>

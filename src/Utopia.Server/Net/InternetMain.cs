@@ -13,7 +13,7 @@ using Utopia.Core.Net;
 
 namespace Utopia.Server.Net;
 
-public sealed class SocketCreatedEvent(ISocket socket,IConnectHandler connectHandler)
+public sealed class SocketCreatedEvent(ISocket socket, IConnectHandler connectHandler)
 {
     public ISocket Socket { get; } = socket;
 
@@ -66,21 +66,21 @@ internal sealed class InternetMain : IInternetMain
 {
     public required IInternetListener InternetListener { get; init; }
 
-    public InternetMain(IEventBus eventBus,ILogger<InternetMain> logger,Launcher.LauncherOption option)
+    public InternetMain(IEventBus eventBus, ILogger<InternetMain> logger, Launcher.LauncherOption option)
     {
         eventBus.Register<LifeCycleEvent<LifeCycle>>((cycle) =>
         {
-            if (cycle is not { Cycle: LifeCycle.StartNetThread , Order: LifeCycleOrder.Current })
+            if (cycle is not { Cycle: LifeCycle.StartNetThread, Order: LifeCycleOrder.Current })
             {
                 return;
             }
 
-            var thread = new Thread( () =>
+            var thread = new Thread(() =>
             {
                 // 注册关闭事件
                 eventBus.Register<LifeCycleEvent<LifeCycle>>((stopCycle) =>
                 {
-                    if (stopCycle is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.After })
+                    if (stopCycle is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.Current })
                     {
                         Stop();
                     }

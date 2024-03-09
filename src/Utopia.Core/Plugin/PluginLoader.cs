@@ -10,7 +10,7 @@ using Utopia.Core.Exceptions;
 namespace Utopia.Core.Plugin;
 
 /// <summary>
-///     插件加载器
+///     标准的插件加载器。
 /// </summary>
 public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPluginBase
 {

@@ -19,7 +19,7 @@ public static class TimeUtilities
     /// <param name="logger">要输出信息的logger</param>
     /// <param name="name">提示信息</param>
     /// <param name="source">取消token</param>
-    public static void SetAnNoticeWhenCancel(ILogger logger,string name,CancellationToken source)
+    public static void SetAnNoticeWhenCancel(ILogger logger, string name, CancellationToken source)
     {
         Stopwatch stopwatch = new();
         stopwatch.Start();
@@ -27,10 +27,10 @@ public static class TimeUtilities
         {
             stopwatch.Stop();
             logger.LogInformation(
-                "{name} completed,using {use time} s",name,stopwatch.Elapsed.TotalSeconds);
+                "{name} completed,using {seconds} s", name, stopwatch.Elapsed.TotalSeconds);
         });
     }
-    public static void SetAnNoticeWhenCancel(ILogger logger,string name,Task source)
+    public static void SetAnNoticeWhenComplete(ILogger logger, string name, Task source)
     {
         Stopwatch stopwatch = new();
         stopwatch.Start();
@@ -42,7 +42,7 @@ public static class TimeUtilities
             }
             stopwatch.Stop();
             logger.LogInformation(
-                "{name} completed,using {use time} s",name,stopwatch.Elapsed.TotalSeconds);
+                "{name} completed,using {seconds} s", name, stopwatch.Elapsed.TotalSeconds);
         });
     }
 

@@ -45,9 +45,9 @@ public class GuuidTest
     [InlineData(null, "nonempty")]
     [InlineData("nonempty", "")]
     [InlineData("nonempty", null)]
-    public void TestGuuidParseStringParseIllegal(string root, string node)
+    public void TestGuuidParseStringParseIllegal(string? root, string? node)
     {
-        Assert.Throws<ArgumentException>(() => { _ = new Guuid(root, node); });
+        Assert.Throws<ArgumentException>(() => { _ = new Guuid(root!, node!); });
     }
 
     [Theory]

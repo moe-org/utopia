@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using Autofac;
 using AutoMapper;
 using CommandLine;
@@ -14,6 +15,7 @@ using NLog.Extensions.Logging;
 using NLog.Fluent;
 using Npgsql;
 using Utopia.Core;
+using Utopia.Core.Exceptions;
 using Utopia.Core.IO;
 using Utopia.Core.Logging;
 using Utopia.Core.Plugin;
@@ -28,13 +30,12 @@ namespace Utopia.Server;
 /// <summary>
 /// 服务器启动器
 /// </summary>
-public class Launcher
+public class Launcher : IDisposable
 {
-    private enum LogOption{ Default,Batch }
-
-    private Launcher()
-    {
-    }
+    /// <summary>
+    /// 仅在内部使用。用于从命令行参数解析。
+    /// </summary>
+    private enum LogOption { Default, Batch }
 
     private class CommandLineOption
     {
@@ -69,7 +70,7 @@ public class Launcher
         /// <summary>
         /// 文件系统
         /// </summary>
-        public IResourceLocator? FileSystem { get; set; } = null;
+        public IResourceLocator? ResourceLocator { get; set; } = null;
 
         /// <summary>
         /// 数据库链接
@@ -82,24 +83,23 @@ public class Launcher
         public LanguageID GlobalLanguage { get; set; } =
             new(CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
             RegionInfo.CurrentRegion.TwoLetterISORegionName);
-    }
 
-    /// <summary>
-    /// 使用字符串参数启动服务器
-    /// </summary>
-    /// <param name="args">命令行参数</param>
-    public static LauncherOption ParseOptions(string[] args)
-    {
-        ArgumentNullException.ThrowIfNull(args, nameof(args));
-        LauncherOption option = new();
+        /// <summary>
+        /// 使用字符串参数解析
+        /// </summary>
+        /// <param name="args">命令行参数</param>
+        public static LauncherOption ParseOptions(string[] args)
+        {
+            ArgumentNullException.ThrowIfNull(args, nameof(args));
+            LauncherOption option = new();
 
-        Parser.Default
+            Parser.Default
                         .ParseArguments<CommandLineOption>(args)
                         .WithParsed((opt) =>
                         {
                             // TODO: REPLACE WITH AUTOMAPPER
                             option.Port = opt.Port;
-                            option.FileSystem = new ResourceLocator(opt.ServerRoot);
+                            option.ResourceLocator = new ResourceLocator(opt.ServerRoot);
 
                             if (option.DatabaseSource is not null)
                             {
@@ -114,106 +114,167 @@ public class Launcher
 
                             option.LogOption = opt.LogOption switch
                             {
-                                LogOption.Batch   => LogManager.LogOption.CreateBatch(),
-                                LogOption.Default => LogManager.LogOption.CreateDefault(),
-                                _                 => option.LogOption
+                                Launcher.LogOption.Batch => LogManager.LogOption.CreateBatch(),
+                                Launcher.LogOption.Default => LogManager.LogOption.CreateDefault(),
+                                _ => option.LogOption
                             };
                         });
 
-        return option;
+            return option;
+        }
     }
 
-    private static IContainer _CreateContainer(LauncherOption option)
+    private WeakThreadSafeEventSource<IContainer> _source = new();
+
+    public event Action<IContainer> GameLaunch
+    {
+        add
+        {
+            _source.Register(value);
+        }
+        remove
+        {
+            _source.Unregister(value);
+        }
+    }
+
+    public ContainerBuilder Builder { get; set; } = new();
+
+    public bool Launched { get; private set; } = false;
+
+    public LauncherOption Option { get; }
+
+    public Launcher(LauncherOption option)
     {
         Guard.IsNotNull(option);
 
-        ContainerBuilder builder = new();
-        builder
-            .RegisterInstance(option)
+        Option = option;
+        // register default components.
+        // this is must for a basic game.
+        _RegisterDefault();
+    }
+
+    private void _RegisterDefault()
+    {
+        Builder
+            .RegisterInstance(Option)
             .SingleInstance()
             .As<LauncherOption>();
-        builder
-            .RegisterInstance(option.FileSystem ?? new ResourceLocator("."))
+        Builder
+            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator("."))
             .SingleInstance()
             .As<IResourceLocator>();
-        builder
+        Builder
             .RegisterType<NLogLoggerFactory>()
             .SingleInstance()
             .As<ILoggerFactory>();
-        builder
+        Builder
             .RegisterGeneric(typeof(Logger<>))
             .As(typeof(ILogger<>))
             .SingleInstance();
-        builder
+        Builder
             .RegisterType<PluginLoader<IPlugin>>()
             .SingleInstance()
             .As<IPluginLoader<IPlugin>>();
-        builder.
+        Builder.
             RegisterType<TranslationManager>()
             .SingleInstance()
             .As<ITranslationManager>();
-        builder
+        Builder
             .RegisterType<StandardLogicThread>()
             .SingleInstance()
             .As<ILogicThread>();
-        builder
+        Builder
             .RegisterType<EventBus>()
             .SingleInstance()
             .As<IEventBus>();
-        builder
+        Builder
             .RegisterType<EntityManager>()
             .SingleInstance()
             .As<IEntityManager>();
-        builder
+        Builder
             .RegisterType<InternetMain>()
             .SingleInstance()
             .As<IInternetMain>();
-        builder
+        Builder
             .RegisterType<InternetListener>()
             .SingleInstance()
             .As<IInternetListener>();
-        builder
+        Builder
             .RegisterType<ConcurrentDictionary<Guuid, IWorld>>()
             .SingleInstance()
             .AsSelf();
-        builder
+        Builder
             .RegisterType<ConcurrentDictionary<Guuid, IWorldFactory>>()
             .SingleInstance()
             .AsSelf();
-        builder
+        Builder
             .RegisterType<MainThread>()
             .AsSelf()
             .SingleInstance();
-        builder
+        Builder
             .RegisterType<StandardPluginProvider>()
             .As<IPluginProvider>()
             .SingleInstance();
-
-        return builder.Build();
     }
-    /// <summary>
-    /// 使用参数启动服务器。
-    /// </summary>
-    /// <param name="option">参数</param>
-    /// <param name="startTask">启动task。将会在启动后complete.</param>
-    /// <returns>服务器主线程Task.会根据服务器运行状态设置<see cref="Task.IsCompleted"/>,<see cref="Task.Exception"/>等内容。</returns>
-    public static Task Launch(LauncherOption option,out Task startTask)
+
+    public void Dispose()
     {
-        // prepare
-        ArgumentNullException.ThrowIfNull(option);
-        if(option.LogOption != null)
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    ~Launcher()
+    {
+        Dispose(false);
+    }
+
+    private bool _diposed = false;
+
+    private void Dispose(bool disposing)
+    {
+        if (_diposed)
         {
-            LogManager.Init(option.LogOption);
+            return;
         }
 
-        var container = _CreateContainer(option);
+        if (disposing)
+        {
 
-        var mainThread = container.Resolve<MainThread>();
+        }
 
-        // set an timer
-        startTask = mainThread.StartTask;
-        TimeUtilities.SetAnNoticeWhenCancel(
-            container.Resolve<ILogger<Launcher>>(), "Server", mainThread.StartTask);
+        _diposed = true;
+    }
+
+    public IContainer? Container { get; private set; } = null;
+
+    public Task? MainThreadTask { get; private set; } = null;
+
+    public void Launch()
+    {
+        // check flags
+        if (Launched)
+        {
+            throw new InvalidOperationException("you can not launch the game more than once");
+        }
+        if (_diposed)
+        {
+            throw new InvalidOperationException("the launcher was disposed");
+        }
+
+        Launched = true;
+
+        // build container
+        Container = Builder.Build();
+
+        // fire event
+        _source.Fire(Container);
+
+        // set an notice to users
+        var mainThread = Container.Resolve<MainThread>();
+
+        TimeUtilities.SetAnNoticeWhenComplete(
+            Container.Resolve<ILogger<Launcher>>(), "Server", mainThread.StartTask);
 
         // start the main thread
         TaskCompletionSource source = new();
@@ -233,7 +294,8 @@ public class Launcher
             }
         });
 
-        return source.Task;
-    }
+        t.Start();
 
+        MainThreadTask = source.Task;
+    }
 }

@@ -65,4 +65,24 @@ public class KcpUdpTest
 
         await TestFor(bytes);
     }
+
+    [Fact]
+    public async void UdpWriteAndReadMultipleThreadTest()
+    {
+        // preapre five tasks
+        Task[] tasks =
+        [
+            TestFor(generate(0)),
+            TestFor(generate(1)),
+            TestFor(generate(2)),
+            TestFor(generate(3)),
+            TestFor(generate(4)),
+        ];
+        byte[] generate(byte index)
+        {
+            return Enumerable.Repeat(index, 512).ToArray();
+        }
+
+        await Task.WhenAll(tasks);
+    }
 }

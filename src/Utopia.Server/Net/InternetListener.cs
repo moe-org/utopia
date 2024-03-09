@@ -27,20 +27,25 @@ internal class InternetListener : IInternetListener
     private int? _port = null;
     private readonly object _lock = new();
 
-    public InternetListener(IEventBus eventBus,Launcher.LauncherOption option,ILogger<InternetListener> logger)
+    public InternetListener(IEventBus eventBus, Launcher.LauncherOption option, ILogger<InternetListener> logger)
     {
         eventBus.Register<LifeCycleEvent<LifeCycle>>(
-        _ =>
+        status =>
         {
-            logger.LogInformation("listen port {port}",option.Port);
+            if (status is not { Cycle: LifeCycle.StartNetThread, Order: LifeCycleOrder.Before })
+            {
+                return;
+            }
+
+            logger.LogInformation("listen port {port}", option.Port);
             Listen(option.Port);
         });
     }
 
     public event Action<SocketAcceptEvent> AcceptEvent
     {
-        add=> this._source.Register(value);
-        remove=> this._source.Unregister(value);
+        add => this._source.Register(value);
+        remove => this._source.Unregister(value);
     }
 
     public int Port

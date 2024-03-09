@@ -1,5 +1,6 @@
 #region
 
+using System.IO.Abstractions;
 using Utopia.Core.Plugin;
 
 #endregion
@@ -11,6 +12,8 @@ namespace Utopia.Core.IO;
 /// </summary>
 public interface IResourceLocator
 {
+    public IFileSystem FileSystem { get; }
+
     public const string DefaultAssetsDirectoryName = "Assets";
 
     public const string DefaultPluginsDirectoryName = "Plugins";
@@ -71,21 +74,21 @@ public interface IResourceLocator
     /// </summary>
     void CreateIfNotExist()
     {
-        Directory.CreateDirectory(this.RootDirectory);
-        Directory.CreateDirectory(this.AssetsDirectory);
-        Directory.CreateDirectory(this.WorldsDirectory);
-        Directory.CreateDirectory(this.CharactersDirectory);
-        Directory.CreateDirectory(this.PluginsDirectory);
-        Directory.CreateDirectory(this.ConfigurationDirectory);
-        Directory.CreateDirectory(this.UtilitiesDirectory);
-        if (this.ServerDirectory != null)
-            Directory.CreateDirectory(this.ServerDirectory);
+        FileSystem.Directory.CreateDirectory(RootDirectory);
+        FileSystem.Directory.CreateDirectory(AssetsDirectory);
+        FileSystem.Directory.CreateDirectory(WorldsDirectory);
+        FileSystem.Directory.CreateDirectory(CharactersDirectory);
+        FileSystem.Directory.CreateDirectory(PluginsDirectory);
+        FileSystem.Directory.CreateDirectory(ConfigurationDirectory);
+        FileSystem.Directory.CreateDirectory(UtilitiesDirectory);
+        if (ServerDirectory != null)
+            FileSystem.Directory.CreateDirectory(ServerDirectory);
     }
 
     string GetConfigurationDirectoryOfPlugin(IPluginInformation plugin)
     {
-        var path = Path.Join(this.ConfigurationDirectory, plugin.Id.ToCsIdentifier());
-        Directory.CreateDirectory(path);
+        var path = FileSystem.Path.Join(ConfigurationDirectory, plugin.Id.ToCsIdentifier());
+        FileSystem.Directory.CreateDirectory(path);
         return path;
     }
 }

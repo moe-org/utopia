@@ -12,6 +12,7 @@ using static Utopia.Server.Launcher;
 using Utopia.Core.Plugin;
 using Autofac;
 using Utopia.Core.IO;
+using Utopia.Core.Logging;
 
 namespace Utopia.Server;
 
@@ -37,7 +38,7 @@ public sealed class MainThread
 
     public required IInternetListener InternetListener { get; init; }
 
-    public required ConcurrentDictionary<long, IWorld> Worlds { get; init; }
+    public required ConcurrentDictionary<Guuid, IWorld> Worlds { get; init; }
 
     public required ConcurrentDictionary<Guuid, IWorldFactory> WorldFactories { get; init; }
 
@@ -50,15 +51,20 @@ public sealed class MainThread
     /// </summary>
     public Task StartTask => _startFinishSource.Task;
 
-    public void _LoadSave()
+    private void _LoadSave()
     {
         KeyValuePair<Guuid, IWorldFactory>[] array = WorldFactories.ToArray();
 
         // TODO: Load saves from file
         if (array.Length == 1)
         {
-            Worlds.TryAdd(0, array[0].Value.GenerateNewWorld());
+            Worlds.TryAdd(Guuid.Unique(), array[0].Value.GenerateNewWorld());
         }
+    }
+
+    private void _InitLoggingSystem()
+    {
+        LogManager.Init(Option.LogOption ?? LogManager.LogOption.CreateBatch());
     }
 
     /// <summary>
@@ -68,19 +74,25 @@ public sealed class MainThread
     {
         Thread.CurrentThread.Name = "Server Main Thread";
 
+        EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
+        {
+            if (e is { Cycle: LifeCycle.InitializedSystem, Order: LifeCycleOrder.Current })
+            {
+                _InitLoggingSystem();
+                Logger.LogInformation("log system initialized");
+            }
+        });
+
+
         ResourceLocator.CreateIfNotExist();
 
         try
         {
+            // 初始化系统
             ChangeLifecycle(LifeCycle.InitializedSystem);
 
             // 加载插件
-            // ChangeLifecycle(LifeCycle.LoadPlugin, () =>
-            //            {
-            //              var plugins = PluginProvider.GetAllPluginsFrom(ResourceLocator.PluginsDirectory);
-            //
-            //              PluginLoader.Activate(plugins);
-            //            });
+            ChangeLifecycle(LifeCycle.LoadPlugin);
 
             // 创建世界
             ChangeLifecycle(LifeCycle.LoadSavings);

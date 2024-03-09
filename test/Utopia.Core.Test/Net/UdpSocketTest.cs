@@ -16,17 +16,22 @@ public class UdpSocketTest(ITestOutputHelper helper)
 {
     public IContainer container = ContainerManager.GetContainerWithLogger(helper);
 
+    private static readonly Random s_rnd = new();
+
     public static (
         (IPEndPoint local, IPEndPoint remote),
         (IPEndPoint local, IPEndPoint remote)) Create()
     {
+        var one = s_rnd.Next(1024, short.MaxValue);
+        var two = s_rnd.Next(1024, short.MaxValue);
+
         return new ValueTuple<(IPEndPoint local, IPEndPoint remote), (IPEndPoint local, IPEndPoint remote)>(
             new ValueTuple<IPEndPoint, IPEndPoint>(
-                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1456),
-                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1345)),
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), one),
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), two)),
             new ValueTuple<IPEndPoint, IPEndPoint>(
-                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1345),
-                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1456)));
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), two),
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), one)));
     }
 
     public static (UDPSocket, UDPSocket) GetSockets()
@@ -58,7 +63,7 @@ public class UdpSocketTest(ITestOutputHelper helper)
 
         await sender.Write(sent);
 
-        Thread.Sleep(100);
+        Thread.Sleep(500);
 
         // read
         MemoryStream memoryStream = new(sent.Length);

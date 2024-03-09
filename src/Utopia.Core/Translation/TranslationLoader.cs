@@ -1,5 +1,6 @@
 #region
 
+using System.IO.Abstractions;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -12,13 +13,13 @@ public static class TranslationLoader
     /// <summary>
     ///     Load a .xml translation file,its type as <see cref="TranslationItems" />
     /// </summary>
-    public static Dictionary<string, string> LoadFromFile(string file)
+    public static Dictionary<string, string> LoadFromFile(string file, IFileSystem fileSystem)
     {
         XmlSerializer serializer = new(typeof(TranslationItems));
 
         TranslationItems? declares = null;
 
-        using (var fs = File.OpenText(file))
+        using (var fs = fileSystem.File.OpenText(file))
         {
             declares = (TranslationItems?)serializer.Deserialize(fs)
                        ?? throw new XmlException("XmlSerializer.Deserialize return null");
@@ -35,12 +36,12 @@ public static class TranslationLoader
     ///     Load all .xml files and union them into one.
     ///     It use <see cref="LoadFromFile(string)" /> to read from file.
     /// </summary>
-    public static Dictionary<string, string> LoadFromDirectory(string directory)
+    public static Dictionary<string, string> LoadFromDirectory(string directory, IFileSystem fileSystem)
     {
         Dictionary<string, string> items = [];
-        foreach (var files in Directory.GetFiles(Path.GetFullPath(directory), "*", SearchOption.AllDirectories))
+        foreach (var files in fileSystem.Directory.GetFiles(fileSystem.Path.GetFullPath(directory), "*", SearchOption.AllDirectories))
             if (files.EndsWith(".xml"))
-                items.Union(LoadFromFile(files));
+                items.Union(LoadFromFile(files, fileSystem));
 
         return items;
     }
