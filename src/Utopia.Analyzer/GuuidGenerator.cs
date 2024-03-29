@@ -68,7 +68,9 @@ public static partial class {root.Class}{{
         {
             DiagnosticHelper.CheckGuuidFormat(declaration.Value, context);
 
-            builder.AppendLine($"\t// {declaration.Desc}");
+            builder.AppendLine($"\t/// <summary>");
+            builder.AppendLine($"\t/// {declaration.Desc}");
+            builder.AppendLine($"\t/// </summary>");
             builder.AppendLine(
                 $"\tpublic static readonly Guuid {declaration.Name ?? $"No CSharpName Found at {declaration.Value}"} = " +
                 $"Guuid.Parse(\"{declaration.Value}\");");

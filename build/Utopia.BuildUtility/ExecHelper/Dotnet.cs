@@ -7,11 +7,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Godot;
+using static SimpleExec.Command;
 
-namespace Utopia.Godot;
-
-public partial class MainThread : Node
+namespace Utopia.BuildUtility.ExecHelper;
+public static class Dotnet
 {
-    public required Node Root { get; init; }
+    public static void RunDotnet()
+    {
+
+    }
+
 }

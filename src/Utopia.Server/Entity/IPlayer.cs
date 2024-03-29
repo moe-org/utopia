@@ -11,5 +11,5 @@ namespace Utopia.Server.Entity;
 /// </summary>
 public interface IPlayer : IEntity
 {
-    public IConnectHandler ConnectHandler { get; }
+    public IConnectionHandler Connection { get; }
 }

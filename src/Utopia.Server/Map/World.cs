@@ -2,6 +2,7 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System.IO.Abstractions;
 using CommunityToolkit.Diagnostics;
 using Utopia.Core;
 using Utopia.Core.IO;
@@ -12,11 +13,14 @@ namespace Utopia.Server.Map;
 
 public class World : IWorld
 {
+
+    public required IFileSystem FileSystem { get; init; }
+
     private readonly Area[][] _areas;
 
     private readonly string _path;
 
-    public World(Guuid id, int xSize, int ySize, IWorldGenerator generator,string path)
+    public World(Guuid id, int xSize, int ySize, IWorldGenerator generator, string path)
     {
         ArgumentNullException.ThrowIfNull(generator);
         _path = path;
@@ -57,7 +61,7 @@ public class World : IWorld
 
     public int YAreaNegativeCount { get; init; }
 
-    public Guuid WorldType => new Guuid("Utopia","DefaultWorld");
+    public Guuid WorldType => new Guuid("Utopia", "DefaultWorld");
 
     private bool _InRange(FlatPosition position) => position.X < XAreaCount * IArea.XSize && position.X >= -XAreaNegativeCount * IArea.XSize
            && position.Y < YAreaCount * IArea.YSize && position.Y >= -YAreaNegativeCount * IArea.YSize;
@@ -141,6 +145,6 @@ public class World : IWorld
                 StreamUtility.WriteDataWithLength(stream, y.SaveAs()).Wait();
             }
         }
-        File.WriteAllBytes(Path.Join(Path.GetFullPath(_path), "data.bin"), stream.ToArray());
+        FileSystem.File.WriteAllBytes(FileSystem.Path.Join(FileSystem.Path.GetFullPath(_path), "data.bin"), stream.ToArray());
     }
 }

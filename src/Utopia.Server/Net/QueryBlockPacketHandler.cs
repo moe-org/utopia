@@ -13,7 +13,7 @@ namespace Utopia.Server.Net;
 
 public class QueryBlockPacketHandler : IPacketHandler
 {
-    public required IConnectHandler ConnectHandler { private get; init; }
+    public required IConnectionHandler ConnectHandler { private get; init; }
 
     public required ConcurrentDictionary<Guuid,IWorld> Worlds { private get; init; }
 

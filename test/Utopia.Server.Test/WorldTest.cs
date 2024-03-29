@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,11 +23,14 @@ public class WorldTest
         generator.Setup(generator => generator.Generate(It.IsAny<IAreaLayer>())).Callback<IAreaLayer>(
             (layer) => layer.Stage = GenerationStage.Finish);
 
-        World world = new(new Core.Guuid("Test","Default"), 2, 2, generator.Object, ".");
+        World world = new(new Core.Guuid("Test", "Default"), 2, 2, generator.Object, ".")
+        {
+            FileSystem = new MockFileSystem()
+        };
 
         var yIndex = -world.YAreaNegativeCount * IArea.YSize;
 
-        while(yIndex != ((world.YAreaCount * IArea.YSize) - 1))
+        while (yIndex != ((world.YAreaCount * IArea.YSize) - 1))
         {
             var xIndex = -world.XAreaNegativeCount * IArea.XSize;
             while (xIndex != ((world.XAreaCount * IArea.XSize) - 1))
@@ -36,7 +40,7 @@ public class WorldTest
                 Assert.True(world.TryGetBlock(pos, out IBlock? block));
                 Assert.True(world.TryGetArea(pos.ToFlat(), out IArea? area));
 
-                Assert.Equal(GenerationStage.Finish,area!.GetLayer(IArea.GroundZ).Stage);
+                Assert.Equal(GenerationStage.Finish, area!.GetLayer(IArea.GroundZ).Stage);
                 Assert.Equal(pos, block!.Position.ToPos());
 
                 xIndex++;

@@ -24,7 +24,7 @@ public interface IBlock : ICanSave<byte[]>
     /// </param>
     bool TryAddEntity(IEntity entity);
 
-    void RemoveEntity(IEntity entity);
+    bool RemoveEntity(IEntity entity);
 
     void RemoveAllEntity(Guuid idOfEntity);
 

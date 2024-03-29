@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -13,6 +13,14 @@
     
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.9.1" />
+
+      <PackageReference Include="TestableIO.System.IO.Abstractions.Analyzers" Version="2022.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      </PackageReference>
+
+      <FrameworkReference Include="Microsoft.AspNetCore.App" />
+      
     </ItemGroup>
 
 </Project>

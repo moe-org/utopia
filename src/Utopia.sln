@@ -14,9 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Core.Test", "..\test\Utopia.Core.Test\Utopia.Core.Test.csproj", "{DB9EC2BA-41E3-47BB-9AE1-87E073792AD7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Build", "..\build\Utopia.Build\Utopia.Build.csproj", "{355CBB79-F8DF-4855-BBE0-EEF238609836}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.BuildScript", "..\build\Utopia.BuildScript\Utopia.BuildScript.csproj", "{355CBB79-F8DF-4855-BBE0-EEF238609836}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Tool", "..\build\Utopia.Tool\Utopia.Tool.csproj", "{2535A702-8958-44A4-B007-98E4CC804C8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.BuildUtility", "..\build\Utopia.BuildUtility\Utopia.BuildUtility.csproj", "{2535A702-8958-44A4-B007-98E4CC804C8F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Server.CorePlugin", "Utopia.Server.CorePlugin\Utopia.Server.CorePlugin.csproj", "{565751E6-3285-4B1F-8EF3-7B20A88F4B41}"
 EndProject
@@ -28,9 +28,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Godot", "..\godot\Ut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Server", "Utopia.Server\Utopia.Server.csproj", "{41122A2A-1B4B-4836-B6CA-0853A9ED4A98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Server.Test", "..\test\Utopia.Server.Test\Utopia.Server.Test.csproj", "{BC7B2113-D5B0-400D-BCED-EF87D8FE4C61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Server.Test", "..\test\Utopia.Server.Test\Utopia.Server.Test.csproj", "{BC7B2113-D5B0-400D-BCED-EF87D8FE4C61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Shared", "Utopia.Shared\Utopia.Shared.csproj", "{16EE046C-05D8-4F6E-8F94-817903D97526}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Shared", "Utopia.Shared\Utopia.Shared.csproj", "{16EE046C-05D8-4F6E-8F94-817903D97526}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XamlX", "XamlX\src\XamlX\XamlX.csproj", "{AFD9534C-380E-4ED9-9E5D-7909E647F272}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,6 +84,10 @@ Global
 		{16EE046C-05D8-4F6E-8F94-817903D97526}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16EE046C-05D8-4F6E-8F94-817903D97526}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{16EE046C-05D8-4F6E-8F94-817903D97526}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFD9534C-380E-4ED9-9E5D-7909E647F272}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFD9534C-380E-4ED9-9E5D-7909E647F272}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFD9534C-380E-4ED9-9E5D-7909E647F272}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFD9534C-380E-4ED9-9E5D-7909E647F272}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

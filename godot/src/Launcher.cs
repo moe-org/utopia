@@ -13,6 +13,7 @@ using Autofac;
 using Godot;
 using Microsoft.Extensions.Logging;
 using Utopia.Core;
+using static Utopia.Godot.Launcher;
 using IContainer = Autofac.IContainer;
 
 namespace Utopia.Godot;
@@ -20,107 +21,29 @@ namespace Utopia.Godot;
 /// <summary>
 /// 启动器
 /// </summary>
-public class Launcher : IDisposable
+public class Launcher(LaunchOptions options) : Launcher<LaunchOptions>(options)
 {
+
     /// <summary>
     /// 启动参数
     /// </summary>
-    public class LaunchOptions
+    public class LaunchOptions(Node node)
     {
+        public Node Root { get; set; } = node;
 
     }
 
-    private WeakThreadSafeEventSource<IContainer> _source = new();
-
-    public event Action<IContainer> GameLaunch
+    protected override void _BuildDefaultContainer()
     {
-        add
-        {
-            _source.Register(value);
-        }
-        remove
-        {
-            _source.Unregister(value);
-        }
-    }
-
-    public ContainerBuilder Builder { get; set; } = new();
-
-    public LaunchOptions Options { get; }
-
-    public Launcher(LaunchOptions options, Node root)
-    {
-        ArgumentNullException.ThrowIfNull(options);
-        Options = options;
-        _RegisterDefault(root);
-    }
-
-    private void _RegisterDefault(Node root)
-    {
-        Builder
-            .RegisterType<MainThread>()
+        Builder!
+            .RegisterInstance(Option.Root)
             .SingleInstance()
-            .AsSelf();
-        Builder
-            .RegisterInstance(root)
-            .SingleInstance()
-            .AsSelf();
+            .As<Node>();
     }
 
-    protected bool _disposed = false;
-
-    public void Dispose()
+    protected override void _MainThread()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+        // wait for exit
 
-    ~Launcher()
-    {
-        Dispose(false);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-
-        }
-
-        _disposed = true;
-    }
-
-    public bool Launched { get; private set; }
-
-    public IContainer? Container { get; private set; } = null;
-
-    public void Launch()
-    {
-        if (Launched)
-        {
-            throw new InvalidOperationException("you can not launch the game more than once");
-        }
-        if (_disposed)
-        {
-            throw new InvalidOperationException("the launcher was disposed");
-        }
-
-        Launched = true;
-
-        // build container
-        Container = Builder.Build();
-
-        _source.Fire(Container);
-
-        // add to node to update
-        var main = Container.Resolve<MainThread>();
-        var node = Container.Resolve<Node>();
-
-        node.AddChild(main);
     }
 }

@@ -78,7 +78,7 @@ public static class LogManager
             configuration.AddRule(
                 min,
                 LogLevel.Off,
-                new StandardConsoleTarget
+                new ColoredOutputTarget
                 {
                     Name = "Colored Console Log Target",
                     WriteLineAction = option.WriteLineAction
@@ -103,6 +103,11 @@ public static class LogManager
     /// <param name="enableRegexColored">是否启用正则表达式进行着色，这会导致性能降低，但是输出将会变得beautiful</param>
     public static void Init(LogOption option)
     {
+        if (!option.EnableLoggingSystem)
+        {
+            return;
+        }
+
         var config = new LoggingConfiguration();
 
         // set up
@@ -110,6 +115,13 @@ public static class LogManager
         SetupFileTarget(option, config);
 
         NLog.LogManager.Configuration = config;
+        NLog.LogManager.ReconfigExistingLoggers();
+        NLog.LogManager.Flush();
+    }
+
+    public static void Init(LoggingConfiguration configuration)
+    {
+        NLog.LogManager.Configuration = configuration;
         NLog.LogManager.ReconfigExistingLoggers();
         NLog.LogManager.Flush();
     }
@@ -127,6 +139,11 @@ public static class LogManager
     /// </summary>
     public class LogOption
     {
+        /// <summary>
+        /// 标志是否启用日志系统。如果设置为false，则不设置<see cref="NLog.LogManager.Configuration"/>，但是不确保外界不会设置这个选项。
+        /// </summary>
+        public bool EnableLoggingSystem = true;
+
         /// <summary>
         ///     We will call this method if it is not null with the string that will be output to console.
         ///     Available only when both <see cref="EnableConsoleOutput" /> and
@@ -183,7 +200,7 @@ public static class LogManager
     /// <summary>
     ///     A class for colored console output
     /// </summary>
-    private class StandardConsoleTarget : Target
+    public class ColoredOutputTarget : Target
     {
         /// <summary>
         ///     No readonly

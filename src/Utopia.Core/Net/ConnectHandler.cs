@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Utopia.Core.Net;
 
-public class ConnectHandler : IConnectHandler
+public class ConnectHandler : IConnectionHandler
 {
     private readonly WeakThreadSafeEventSource<Exception?> _event = new();
 

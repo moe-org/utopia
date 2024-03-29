@@ -11,7 +11,7 @@ namespace Utopia.Core.Net;
 ///     把数据传输提升到了object而不是byte[]的层面.
 ///     使用<see cref="IPacketizer" />,<see cref="IDispatcher" />等接口对包进行处理.
 /// </summary>
-public interface IConnectHandler : IDisposable
+public interface IConnectionHandler : IDisposable
 {
     /// <summary>
     ///     链接是否仍然存活.

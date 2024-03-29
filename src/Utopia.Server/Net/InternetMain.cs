@@ -13,13 +13,13 @@ using Utopia.Core.Net;
 
 namespace Utopia.Server.Net;
 
-public sealed class SocketCreatedEvent(ISocket socket, IConnectHandler connectHandler)
+public sealed class SocketCreatedEvent(ISocket socket, IConnectionHandler connectHandler)
 {
     public ISocket Socket { get; } = socket;
 
-    private IConnectHandler _handler = connectHandler;
+    private IConnectionHandler _handler = connectHandler;
 
-    public IConnectHandler ConnectHandler
+    public IConnectionHandler ConnectHandler
     {
         get => this._handler;
         set
@@ -36,8 +36,8 @@ public sealed class SocketCreatedEvent(ISocket socket, IConnectHandler connectHa
 public interface IInternetMain
 {
     /// <summary>
-    /// 构建<see cref="IConnectHandler.Container"/>的容器.
-    /// The <see cref="ISocket"/> and <see cref="IConnectHandler"/> was registered to the builder.
+    /// 构建<see cref="IConnectionHandler.Container"/>的容器.
+    /// The <see cref="ISocket"/> and <see cref="IConnectionHandler"/> was registered to the builder.
     /// </summary>
     public event Action<ContainerBuilder> ClientContainerCreateEvent;
 
@@ -49,7 +49,7 @@ public interface IInternetMain
     /// <summary>
     /// 连接池。
     /// </summary>
-    public IEnumerable<IConnectHandler> ConnectionPool { get; }
+    public IEnumerable<IConnectionHandler> ConnectionPool { get; }
 
     public void Stop();
 
@@ -107,7 +107,7 @@ internal sealed class InternetMain : IInternetMain
 
     public required ILifetimeScope Container { get; init; }
 
-    private readonly List<IConnectHandler> _clients = new();
+    private readonly List<IConnectionHandler> _clients = new();
 
     private readonly TaskCompletionSource _source = new();
 
@@ -136,7 +136,7 @@ internal sealed class InternetMain : IInternetMain
         remove => this._socketSource.Unregister(value);
     }
 
-    public IEnumerable<IConnectHandler> ConnectionPool
+    public IEnumerable<IConnectionHandler> ConnectionPool
     {
         get
         {
@@ -147,7 +147,7 @@ internal sealed class InternetMain : IInternetMain
         }
     }
 
-    private void Unregister(IConnectHandler connectHandler)
+    private void Unregister(IConnectionHandler connectHandler)
     {
         lock (this._lock)
         {
@@ -184,7 +184,7 @@ internal sealed class InternetMain : IInternetMain
                     builder
                         .RegisterType<ConnectHandler>()
                         .SingleInstance()
-                        .As<IConnectHandler>();
+                        .As<IConnectionHandler>();
 
                     this._clientSource.Fire(builder, false);
                 });
@@ -193,7 +193,7 @@ internal sealed class InternetMain : IInternetMain
                 {
                     var e = new SocketCreatedEvent(
                         socket,
-                        container.Resolve<IConnectHandler>());
+                        container.Resolve<IConnectionHandler>());
                     this._socketSource.Fire(e, false);
 
                     // add to the pool

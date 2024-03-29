@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO.Abstractions;
 using System.Reflection;
 using Autofac;
 using AutoMapper;
@@ -24,13 +25,14 @@ using Utopia.Server.Entity;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
+using static Utopia.Server.Launcher;
 
 namespace Utopia.Server;
 
 /// <summary>
 /// 服务器启动器
 /// </summary>
-public class Launcher : IDisposable
+public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
 {
     /// <summary>
     /// 仅在内部使用。用于从命令行参数解析。
@@ -99,7 +101,8 @@ public class Launcher : IDisposable
                         {
                             // TODO: REPLACE WITH AUTOMAPPER
                             option.Port = opt.Port;
-                            option.ResourceLocator = new ResourceLocator(opt.ServerRoot);
+                            option.ResourceLocator = new ResourceLocator(opt.ServerRoot,
+                                new FileSystem());
 
                             if (option.DatabaseSource is not null)
                             {
@@ -123,45 +126,15 @@ public class Launcher : IDisposable
             return option;
         }
     }
-
-    private WeakThreadSafeEventSource<IContainer> _source = new();
-
-    public event Action<IContainer> GameLaunch
+    protected override void _BuildDefaultContainer()
     {
-        add
-        {
-            _source.Register(value);
-        }
-        remove
-        {
-            _source.Unregister(value);
-        }
-    }
-
-    public ContainerBuilder Builder { get; set; } = new();
-
-    public bool Launched { get; private set; } = false;
-
-    public LauncherOption Option { get; }
-
-    public Launcher(LauncherOption option)
-    {
-        Guard.IsNotNull(option);
-
-        Option = option;
-        // register default components.
-        // this is must for a basic game.
-        _RegisterDefault();
-    }
-
-    private void _RegisterDefault()
-    {
+        ArgumentNullException.ThrowIfNull(Builder);
         Builder
             .RegisterInstance(Option)
             .SingleInstance()
             .As<LauncherOption>();
         Builder
-            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator("."))
+            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new FileSystem()))
             .SingleInstance()
             .As<IResourceLocator>();
         Builder
@@ -218,84 +191,11 @@ public class Launcher : IDisposable
             .SingleInstance();
     }
 
-    public void Dispose()
+    protected override void _MainThread()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    ~Launcher()
-    {
-        Dispose(false);
-    }
-
-    private bool _diposed = false;
-
-    private void Dispose(bool disposing)
-    {
-        if (_diposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-
-        }
-
-        _diposed = true;
-    }
-
-    public IContainer? Container { get; private set; } = null;
-
-    public Task? MainThreadTask { get; private set; } = null;
-
-    public void Launch()
-    {
-        // check flags
-        if (Launched)
-        {
-            throw new InvalidOperationException("you can not launch the game more than once");
-        }
-        if (_diposed)
-        {
-            throw new InvalidOperationException("the launcher was disposed");
-        }
-
-        Launched = true;
-
-        // build container
-        Container = Builder.Build();
-
-        // fire event
-        _source.Fire(Container);
-
-        // set an notice to users
-        var mainThread = Container.Resolve<MainThread>();
-
         TimeUtilities.SetAnNoticeWhenComplete(
-            Container.Resolve<ILogger<Launcher>>(), "Server", mainThread.StartTask);
-
-        // start the main thread
-        TaskCompletionSource source = new();
-        var t = new Thread(() =>
-        {
-            try
-            {
-                mainThread.Launch();
-            }
-            catch (Exception e)
-            {
-                source.SetException(e);
-            }
-            finally
-            {
-                source.TrySetResult();
-            }
-        });
-
-        t.Start();
-
-        MainThreadTask = source.Task;
+            Container!.Resolve<ILogger<Launcher>>(), "Server", MainTask!);
+        var mainThread = Container!.Resolve<MainThread>();
+        mainThread.Launch();
     }
 }

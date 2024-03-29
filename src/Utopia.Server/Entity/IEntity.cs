@@ -50,7 +50,7 @@ public interface IPhysicsEntity
 /// 一些视觉特效等不算实体，但是前提是这些“特效”在有和没有的情况下对游戏逻辑不造成可观测的影响。
 /// 典型实体如：生物，玩家，掉落物，建筑。
 /// </summary>
-public interface IEntity : ICanSave<byte[]>, IEntityInformation, IPhysicsEntity,IEquatable<IEntity>
+public interface IEntity : ICanSave<byte[]>, IEntityInformation, IPhysicsEntity, IEquatable<IEntity>
 {
     /// <summary>
     /// 每个逻辑帧调用。一秒20个逻辑帧，可能从不同线程发起调用。

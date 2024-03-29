@@ -80,11 +80,10 @@ public sealed class MainThread
             {
                 _InitLoggingSystem();
                 Logger.LogInformation("log system initialized");
+                ResourceLocator.CreateIfNotExist();
+                Logger.LogInformation("create directory for resources");
             }
         });
-
-
-        ResourceLocator.CreateIfNotExist();
 
         try
         {

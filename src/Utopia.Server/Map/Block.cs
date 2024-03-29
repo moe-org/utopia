@@ -70,7 +70,7 @@ public class Block(WorldPosition position) : IBlock
         return _entities.Count == 0;
     }
 
-    public void RemoveEntity(IEntity entity)
+    public bool RemoveEntity(IEntity entity)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
 
@@ -78,7 +78,7 @@ public class Block(WorldPosition position) : IBlock
 
         if (!found)
         {
-            return;
+            return false;
         }
         // update
         if (entity.CanCollide)
@@ -87,10 +87,12 @@ public class Block(WorldPosition position) : IBlock
         }
         if (entity.Accessible)
         {
-            return;
+            return true;
         }
 
         _cannotAccessible--;
+
+        return true;
     }
 
     public bool TryAddEntity(IEntity entity)

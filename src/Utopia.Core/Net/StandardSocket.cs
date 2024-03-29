@@ -8,7 +8,7 @@ using System.Net.Sockets;
 namespace Utopia.Core.Net;
 
 /// <summary>
-///     对于<see cref="Socket" />的封装(KCP).
+///     对于<see cref="Socket" />的封装(TCP).
 /// </summary>
 /// <param name="socket"></param>
 public class StandardSocket(Socket socket) : ISocket

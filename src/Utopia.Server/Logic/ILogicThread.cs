@@ -25,7 +25,7 @@ public interface ILogicThread
     /// <summary>
     /// 已经进行了多少次Tick
     /// </summary>
-    long Ticks { get; }
+    long TotalTicks { get; }
 
     /// <summary>
     /// 用于指示状态。
@@ -79,7 +79,7 @@ public class StandardLogicThread : ILogicThread
 
     public IUpdater Updater { get; } = new SimplyUpdater();
 
-    public long Ticks => _ticker.MillisecondFromLastTick;
+    public long TotalTicks => _ticker.MillisecondFromLastTick;
 
     public ConcurrentBag<IUpdatable> Updatables { get; init; } = [];
 
