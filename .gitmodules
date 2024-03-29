@@ -1,3 +1,9 @@
 [submodule "src/Mingmoe.Demystifier"]
 	path = src/Mingmoe.Demystifier
 	url = https://github.com/mingmoe/Mingmoe.Demystifier
+[submodule "src/XamlX"]
+	path = src/XamlX
+	url = https://github.com/mingmoe/XamlX
+[submodule "src/aspnetcore"]
+	path = src/aspnetcore
+	url = https://github.com/dotnet/aspnetcore
