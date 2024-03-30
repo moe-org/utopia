@@ -4,6 +4,3 @@
 [submodule "src/XamlX"]
 	path = src/XamlX
 	url = https://github.com/mingmoe/XamlX
-[submodule "src/aspnetcore"]
-	path = src/aspnetcore
-	url = https://github.com/dotnet/aspnetcore
