@@ -1,0 +1,17 @@
+{
+  "solution": {
+    "path": "src\\Utopia.sln",
+    "projects": [
+      "..\\build\\Utopia.BuildScript\\Utopia.BuildScript.csproj",
+      "..\\build\\Utopia.BuildUtility\\Utopia.BuildUtility.csproj",
+      "..\\godot\\Utopia.Godot.csproj",
+      "..\\test\\Utopia.Core.Test\\Utopia.Core.Test.csproj",
+      "..\\test\\Utopia.Server.Test\\Utopia.Server.Test.csproj",
+      "Utopia.Analyzer\\Utopia.Analyzer.csproj",
+      "Utopia.Core\\Utopia.Core.csproj",
+      "Utopia.Server.CorePlugin\\Utopia.Server.CorePlugin.csproj",
+      "Utopia.Server\\Utopia.Server.csproj",
+      "Utopia.Shared\\Utopia.Shared.csproj"
+    ]
+  }
+}

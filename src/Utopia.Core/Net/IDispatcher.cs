@@ -25,7 +25,7 @@ public class Dispatcher : IDispatcher
 
     public async Task<bool> DispatchPacket(Guuid packetTypeId, object obj)
     {
-        if (this.Handlers.TryGetValue(packetTypeId, out var handler))
+        if (Handlers.TryGetValue(packetTypeId, out var handler))
         {
             await handler.Handle(packetTypeId, obj);
             return true;

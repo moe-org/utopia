@@ -1,4 +1,4 @@
-﻿// This file is a part of the project Utopia(Or is a part of its subproject).
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
@@ -8,7 +8,7 @@ namespace Utopia.Core;
 
 public class EventBus : IEventBus
 {
-    private readonly ConcurrentDictionary<Type, (object,object)> _handlers = new();
+    private readonly ConcurrentDictionary<Type, (object, object)> _handlers = new();
 
     private readonly WeakThreadSafeEventSource<object?> _source = new();
 
@@ -18,8 +18,8 @@ public class EventBus : IEventBus
         remove => this._source.Unregister(value);
     }
 
-    private (List<WeakReference<Action<T>>> handlers,object @lock) _Get<T>() => ((List<WeakReference<Action<T>>>,object))_handlers.GetOrAdd
-            (typeof(T), (t) => { return new(new List<WeakReference<Action<T>>>(),new object()); });
+    private (List<WeakReference<Action<T>>> handlers, object @lock) _Get<T>() => ((List<WeakReference<Action<T>>>, object))_handlers.GetOrAdd
+            (typeof(T), (t) => { return new(new List<WeakReference<Action<T>>>(), new object()); });
 
     public void Clear<T>()
     {

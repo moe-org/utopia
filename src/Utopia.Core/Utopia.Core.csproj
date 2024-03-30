@@ -21,8 +21,9 @@
         <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="20.0.15" />
         <PackageReference Include="TestableIO.System.IO.Abstractions.Extensions" Version="2.2.5" />
         <PackageReference Include="ZString" Version="2.5.1" />
-        <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
         <PackageReference Include="Npgsql" Version="8.0.2" />
+      <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.8" />
+      <PackageReference Include="SqlSugarCore" Version="5.1.4.149-preview35" />
         <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
         <PackageReference Include="SharpCompress" Version="0.36.0" />
         <PackageReference Include="Kcp" Version="2.7.0" />
@@ -31,15 +32,15 @@
       <PackageReference Include="SemanticVersioning" Version="2.0.2" />
 
       <PackageReference Include="TestableIO.System.IO.Abstractions.Analyzers" Version="2022.0.0">
-        <!--
-        try for the analyzer enable to users
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-        -->
       </PackageReference>
 
         <ProjectReference Include="../Mingmoe.Demystifier/src/Mingmoe.Demystifier/Mingmoe.Demystifier.csproj" />
         <ProjectReference Include="../Utopia.Shared/Utopia.Shared.csproj" />
+        <ProjectReference Include="../XamlX/src/XamlX/XamlX.csproj" />
+
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
 </Project>

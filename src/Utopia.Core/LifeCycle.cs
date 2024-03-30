@@ -45,7 +45,7 @@ public class LifeCycleEvent<TCycle>
         fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.Before, cycle));
         logger.LogInformation("enter {lifecycle} lifecycle", cycle);
         switchAction.Invoke();
-        fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.Current,cycle));
+        fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.Current, cycle));
         logger.LogInformation("enter post-{lifecycle} lifecycle", cycle);
         fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.After, cycle));
     }
@@ -60,7 +60,7 @@ public class LifeCycleEvent<TCycle>
             logger,
             (e) =>
             {
-                bus.Fire(e,false);
+                bus.Fire(e, false);
             },
             switchAction);
     }

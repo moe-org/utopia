@@ -11,7 +11,11 @@ using Autofac;
 using AutoMapper;
 using CommandLine;
 using CommunityToolkit.Diagnostics;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NLog.Extensions.Logging;
 using NLog.Fluent;
 using Npgsql;
@@ -129,6 +133,7 @@ public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
     protected override void _BuildDefaultContainer()
     {
         ArgumentNullException.ThrowIfNull(Builder);
+        // some fundation utilities
         Builder
             .RegisterInstance(Option)
             .SingleInstance()
@@ -165,14 +170,14 @@ public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
             .RegisterType<EntityManager>()
             .SingleInstance()
             .As<IEntityManager>();
-        Builder
+        /*Builder
             .RegisterType<InternetMain>()
             .SingleInstance()
             .As<IInternetMain>();
         Builder
             .RegisterType<InternetListener>()
             .SingleInstance()
-            .As<IInternetListener>();
+            .As<IInternetListener>();*/
         Builder
             .RegisterType<ConcurrentDictionary<Guuid, IWorld>>()
             .SingleInstance()
@@ -188,6 +193,28 @@ public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
         Builder
             .RegisterType<StandardPluginProvider>()
             .As<IPluginProvider>()
+            .SingleInstance();
+
+        // kestrel server
+        Builder
+            .RegisterType<KestrelServerOptions>()
+            .SingleInstance();
+        Builder
+            .RegisterType<OptionsWrapper<KestrelServerOptions>>()
+            .SingleInstance();
+        Builder
+            .RegisterType<SocketTransportOptions>()
+            .SingleInstance();
+        Builder
+            .RegisterType<OptionsWrapper<SocketTransportOptions>>()
+            .SingleInstance();
+        Builder
+            .RegisterType<SocketTransportFactory>()
+            .SingleInstance()
+            .As<IConnectionListenerFactory>()
+            .As<IConnectionListenerFactorySelector>();
+        Builder
+            .RegisterType<KestrelServer>()
             .SingleInstance();
     }
 

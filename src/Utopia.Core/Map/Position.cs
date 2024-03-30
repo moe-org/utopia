@@ -30,7 +30,7 @@ public readonly partial struct FlatPosition
         if (obj is FlatPosition position) return position.X == this.X && position.Y == this.Y;
         return false;
     }
-    
+
     public static bool operator ==(FlatPosition lhs, FlatPosition rhs)
     {
         return lhs.Equals(rhs);
@@ -40,7 +40,7 @@ public readonly partial struct FlatPosition
     {
         return !lhs.Equals(rhs);
     }
-    
+
     public override int GetHashCode()
     {
         return HashCode.Combine(this.X.GetHashCode(), this.Y.GetHashCode());
@@ -81,7 +81,7 @@ public readonly partial struct Position
         if (obj is Position position) return position.X == this.X && position.Y == this.Y && position.Z == this.Z;
         return false;
     }
-    
+
     public static bool operator ==(Position lhs, Position rhs)
     {
         return lhs.Equals(rhs);
@@ -144,7 +144,7 @@ public readonly partial struct WorldPosition
             return position.X == this.X && position.Y == this.Y && position.Z == this.Z && position.Id == this.Id;
         return false;
     }
-    
+
     public static bool operator ==(WorldPosition lhs, WorldPosition rhs)
     {
         return lhs.Equals(rhs);
@@ -194,7 +194,7 @@ public readonly partial struct FlatPositionWithId
             return position.X == this.X && position.Y == this.Y && position.Id == this.Id;
         return false;
     }
-    
+
     public static bool operator ==(FlatPositionWithId lhs, FlatPositionWithId rhs)
     {
         return lhs.Equals(rhs);

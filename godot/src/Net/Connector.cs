@@ -33,9 +33,9 @@ public class Connector
 
     public required ILogger<UDPSocket> Logger { get; init; }
 
-    public void Connect(string address,int port,ConnectionType type)
+    public void Connect(string address, int port, ConnectionType type)
     {
-        if(type == ConnectionType.Tcp)
+        if (type == ConnectionType.Tcp)
         {
             var tcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -43,7 +43,7 @@ public class Connector
 
             Socket = new StandardSocket(tcp);
         }
-        if(type == ConnectionType.UdpKcp)
+        if (type == ConnectionType.UdpKcp)
         {
             var tcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Udp);
 
@@ -51,7 +51,7 @@ public class Connector
 
             Socket = new KcpSocket(new UDPSocket(
                 new IPEndPoint(IPAddress.Any, 0),
-                new IPEndPoint(IPAddress.Parse(address),port),
+                new IPEndPoint(IPAddress.Parse(address), port),
                 Logger,
                 UdpManager));
         }

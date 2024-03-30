@@ -96,7 +96,7 @@ public class GlobalUDPManager
                         sockets.Add(socket);
                     }
 
-                foreach(var toRemove in sockets)
+                foreach (var toRemove in sockets)
                 {
                     this.RemoveSocket(toRemove);
                 }
