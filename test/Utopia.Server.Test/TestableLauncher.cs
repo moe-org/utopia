@@ -17,14 +17,12 @@ namespace Utopia.Server.Test;
 
 public class TestableLauncher : Launcher
 {
-    public static LauncherOption GetDefaultTestOption()
+    public static Options GetDefaultTestOption()
     {
-        var opt = new LauncherOption
+        var opt = Options.Default();
+        opt.LogOption = new Core.Logging.LogManager.LogOption()
         {
-            LogOption = new Core.Logging.LogManager.LogOption()
-            {
-                EnableLoggingSystem = false,
-            }
+            EnableLoggingSystem = false,
         };
         return opt;
     }
@@ -33,7 +31,8 @@ public class TestableLauncher : Launcher
 
     public TestableLauncher() : base(GetDefaultTestOption())
     {
-        // TODO: Register Testable thigns
+        // TODO: Register Tastable logger
+        // TODO: Register Testable things
         Builder!.RegisterInstance<IFileSystem>(FileSystem).SingleInstance();
     }
 

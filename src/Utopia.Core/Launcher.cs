@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using IContainer = Autofac.IContainer;
 
 namespace Utopia.Core;
@@ -33,6 +35,8 @@ public abstract class Launcher<T>(T option)
     public ContainerBuilder? Builder { get; protected set; } = new();
 
     public IContainer? Container { get; protected set; } = null;
+
+    public IServiceProvider? ServiceProvider { get;protected set; }
 
     public Task? MainTask { get; protected set; } = null;
 
@@ -62,6 +66,7 @@ public abstract class Launcher<T>(T option)
 
         // build container
         Container = Builder!.Build();
+        ServiceProvider = new AutofacServiceProvider(Container);
         Builder = null;
         _source.Fire(Container);
 

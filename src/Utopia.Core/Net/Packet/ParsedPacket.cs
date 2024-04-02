@@ -7,14 +7,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MemoryPack;
 
 namespace Utopia.Core.Net.Packet;
-
-[MemoryPackable]
-public partial class SinglePacket
+public sealed class ParsedPacket
 {
-    public string Guuid { get; set; }
+    public Guuid ID { get;set; }
 
-    public byte[] Data { get; set; }
+    public object Obj { get; set; }
+
+    public ParsedPacket(Guuid ID, object Obj)
+    {
+        ArgumentNullException.ThrowIfNull(ID);
+        ArgumentNullException.ThrowIfNull(Obj);
+        this.ID = ID;
+        this.Obj = Obj;
+    }
 }

@@ -13,17 +13,15 @@ namespace Utopia.Server.Net;
 
 public class QueryBlockPacketHandler : IPacketHandler
 {
-    public required IConnectionHandler ConnectHandler { private get; init; }
-
     public required ConcurrentDictionary<Guuid,IWorld> Worlds { private get; init; }
 
-    public Task Handle(Guuid packetId, object packet)
+    public async Task Handle(ConnectionContext context, Guuid packetId, object packet)
     {
         var query = (QueryBlockPacket)packet;
 
         if (!Worlds.TryGetValue(query.QueryPosition.Id, out IWorld? world))
         {
-            return Task.FromResult(0);
+            return;
         }
 
         if (world!.TryGetBlock(query.QueryPosition.ToPos(), out IBlock? block))
@@ -38,9 +36,7 @@ public class QueryBlockPacketHandler : IPacketHandler
             info.Entities = entities.Select((i) => i.Id).ToArray();
             info.EntityData = entities.Select((i) => i.SaveAs()).ToArray();
 
-            ConnectHandler.WritePacket(BlockInfoPacketFormatter.PacketTypeId, info);
+            await context.PacketWriter.WriteAsync(new(AreaInfomrationPacketFormatter.PacketTypeId, info));
         }
-
-        return Task.FromResult(0);
     }
 }

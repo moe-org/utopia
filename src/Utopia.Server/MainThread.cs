@@ -13,6 +13,7 @@ using Utopia.Core.Plugin;
 using Autofac;
 using Utopia.Core.IO;
 using Utopia.Core.Logging;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace Utopia.Server;
 
@@ -30,13 +31,9 @@ public sealed class MainThread
 
     public required ILifetimeScope Container { get; init; }
 
-    public required LauncherOption Option { get; init; }
+    public required Options Option { get; init; }
 
     public required ILogicThread LogicThread { get; init; }
-
-    public required IInternetMain InternetMain { get; init; }
-
-    public required IInternetListener InternetListener { get; init; }
 
     public required ConcurrentDictionary<Guuid, IWorld> Worlds { get; init; }
 
@@ -106,7 +103,7 @@ public sealed class MainThread
             _startFinishSource.SetResult();
 
             // stop when any of threads stop
-            var task = Task.WhenAll(LogicThread.Task, InternetMain.Task);
+            var task = Task.WhenAll(LogicThread.Task);
 
             task.Wait();
         }

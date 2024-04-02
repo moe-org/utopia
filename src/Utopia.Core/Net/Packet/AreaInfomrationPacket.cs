@@ -23,7 +23,7 @@ public partial class AreaInfomrationPacket
     public WorldPosition Position { get; set; }
 }
 
-public class BlockInfoPacketFormatter : IPacketFormatter
+public class AreaInfomrationPacketFormatter : IPacketFormatter
 {
     public static readonly Guuid PacketTypeId = InternalHelper.NewInternalGuuid("Net", "Packet", "BlockInformation");
 

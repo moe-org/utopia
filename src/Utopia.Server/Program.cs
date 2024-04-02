@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using SqlSugar;
+using Utopia.Server.Net;
 
 namespace Utopia.Server;
 
@@ -80,36 +81,25 @@ public static class Program
     /// <param name="args">命令行参数只是为了方便，实际上命令行参数无法覆盖所有设置！</param>
     public static void Main(string[] args)
     {
-        // connect to database
-        Func<ISqlSugarClient> scope;
-        if (args.Length >= 1 && args[0].StartsWith("Sqlite:"))
+        if(args.Length != 0)
         {
-            scope = () => ConnectToSqlite(args[0][("Sqlite:".Length)..]);
-        }
-        else
-        {
-            scope = () => ConnectToSqlite("file::memory:");
-            Console.WriteLine("You are using a in-memory database(sqlite with in-memory mode) now!");
-            Console.WriteLine("You will lose all the data once the server shutdown.");
-            Console.WriteLine(
-                "use `Sqlite:Your Connection String` " +
-                "as the first argument " +
-                "to connect to the database.");
+            throw new ArgumentException("you should not use any argument");
         }
 
-        var opt = Launcher.LauncherOption.ParseOptions(args);
+
+        var opt = Launcher.Options.Default();
 
         var launcher = new Launcher(opt);
+
+        launcher.UseKestrelForServer();
 
         launcher.Builder!
             .Register((t) =>
         {
-            return scope.Invoke();
+            return ConnectToSqlite(":memory:");
         })
             .As<ISqlSugarClient>()
             .InstancePerDependency();
-
-        launcher.Builder!.RegisterInstance(scope).As<ISqlSugarClient>();
 
         launcher.Launch();
 

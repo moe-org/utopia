@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Abstractions;
+using System.Net;
 using System.Reflection;
 using Autofac;
 using AutoMapper;
@@ -23,6 +24,7 @@ using Utopia.Core;
 using Utopia.Core.Exceptions;
 using Utopia.Core.IO;
 using Utopia.Core.Logging;
+using Utopia.Core.Net;
 using Utopia.Core.Plugin;
 using Utopia.Core.Translation;
 using Utopia.Server.Entity;
@@ -36,37 +38,17 @@ namespace Utopia.Server;
 /// <summary>
 /// 服务器启动器
 /// </summary>
-public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
+public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(option)
 {
-    /// <summary>
-    /// 仅在内部使用。用于从命令行参数解析。
-    /// </summary>
-    private enum LogOption { Default, Batch }
-
-    private class CommandLineOption
-    {
-        [Option] public int Port { get; set; } = 1145;
-
-        [Option] public LogOption LogOption { get; set; } = LogOption.Default;
-
-        [Option] public string ServerRoot { get; set; } = ".";
-
-        [Option] public string? PostgreSQLConnection { get; set; } = null;
-
-        [Option] public string Culture { get; set; } = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
-
-        [Option] public string Region { get; set; } = RegionInfo.CurrentRegion.TwoLetterISORegionName;
-    }
-
     /// <summary>
     /// 启动参数
     /// </summary>
-    public class LauncherOption
+    public class Options
     {
         /// <summary>
         /// 服务器端口
         /// </summary>
-        public int Port { get; set; } = 1145;
+        public const int DefaultPort = 1145;
 
         /// <summary>
         /// If it's null,skip set up logging system
@@ -90,44 +72,18 @@ public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
             new(CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
             RegionInfo.CurrentRegion.TwoLetterISORegionName);
 
-        /// <summary>
-        /// 使用字符串参数解析
-        /// </summary>
-        /// <param name="args">命令行参数</param>
-        public static LauncherOption ParseOptions(string[] args)
+        public KestrelServerOptions KestrelOptions { get; set; } = new();
+
+        public SocketTransportOptions SocketOptions { get; set; } = new();
+
+        private Options()
         {
-            ArgumentNullException.ThrowIfNull(args, nameof(args));
-            LauncherOption option = new();
 
-            Parser.Default
-                        .ParseArguments<CommandLineOption>(args)
-                        .WithParsed((opt) =>
-                        {
-                            // TODO: REPLACE WITH AUTOMAPPER
-                            option.Port = opt.Port;
-                            option.ResourceLocator = new ResourceLocator(opt.ServerRoot,
-                                new FileSystem());
+        }
 
-                            if (option.DatabaseSource is not null)
-                            {
-                                var dataSourceBuilder = new NpgsqlDataSourceBuilder(opt.PostgreSQLConnection);
-                                dataSourceBuilder.UseLoggerFactory(new NLogLoggerFactory());
-                                NpgsqlDataSource dataSource = dataSourceBuilder.Build();
-
-                                option.DatabaseSource = dataSource;
-                            }
-
-                            option.GlobalLanguage = new LanguageID(opt.Culture, opt.Region);
-
-                            option.LogOption = opt.LogOption switch
-                            {
-                                Launcher.LogOption.Batch => LogManager.LogOption.CreateBatch(),
-                                Launcher.LogOption.Default => LogManager.LogOption.CreateDefault(),
-                                _ => option.LogOption
-                            };
-                        });
-
-            return option;
+        public static Options Default()
+        {
+            return new();
         }
     }
     protected override void _BuildDefaultContainer()
@@ -137,7 +93,7 @@ public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
         Builder
             .RegisterInstance(Option)
             .SingleInstance()
-            .As<LauncherOption>();
+            .As<Options>();
         Builder
             .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new FileSystem()))
             .SingleInstance()
@@ -197,16 +153,18 @@ public class Launcher(LauncherOption option) : Launcher<LauncherOption>(option)
 
         // kestrel server
         Builder
-            .RegisterType<KestrelServerOptions>()
+            .RegisterInstance(Option.KestrelOptions)
             .SingleInstance();
         Builder
             .RegisterType<OptionsWrapper<KestrelServerOptions>>()
+            .As<IOptions<KestrelServerOptions>>()
             .SingleInstance();
         Builder
-            .RegisterType<SocketTransportOptions>()
+            .RegisterInstance(Option.SocketOptions)
             .SingleInstance();
         Builder
             .RegisterType<OptionsWrapper<SocketTransportOptions>>()
+            .As<IOptions<SocketTransportOptions>>()
             .SingleInstance();
         Builder
             .RegisterType<SocketTransportFactory>()

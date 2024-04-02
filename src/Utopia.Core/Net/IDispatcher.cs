@@ -16,18 +16,18 @@ public interface IDispatcher
     /// <summary>
     ///     if there is no handler for the packet,return false
     /// </summary>
-    Task<bool> DispatchPacket(Guuid packetTypeId, object obj);
+    Task<bool> DispatchPacket(ConnectionContext context,Guuid packetTypeId, object obj);
 }
 
 public class Dispatcher : IDispatcher
 {
     public ConcurrentDictionary<Guuid, IPacketHandler> Handlers { get; } = new();
 
-    public async Task<bool> DispatchPacket(Guuid packetTypeId, object obj)
+    public async Task<bool> DispatchPacket(ConnectionContext context,Guuid packetTypeId, object obj)
     {
         if (Handlers.TryGetValue(packetTypeId, out var handler))
         {
-            await handler.Handle(packetTypeId, obj);
+            await handler.Handle(context,packetTypeId, obj);
             return true;
         }
 

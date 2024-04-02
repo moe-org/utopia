@@ -25,15 +25,15 @@ public class User
     /// <summary>
     /// The password of the user
     /// </summary>
-    public string PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = string.Empty;
 
     /// <summary>
     /// The salt of the password
     /// </summary>
-    public string Salt { get; set; }
+    public string Salt { get; set; } = string.Empty;
 
     /// <summary>
     /// 用户的邮箱，可以用于gravatar等处
     /// </summary>
-    public string Email { get; set; }
+    public string Email { get; set; } = string.Empty;
 }

@@ -23,15 +23,11 @@ public enum ConnectionType
 /// <summary>
 /// 连接器
 /// </summary>
-public class Connector
+public class Connector : IDisposable
 {
-    public ISocket Socket { get; private set; } = null!;
+    private Socket Socket { get; set; } = null!;
 
-    public IConnectionHandler ConnectionHandler { get; private set; } = null!;
-
-    public required GlobalUDPManager UdpManager { get; init; }
-
-    public required ILogger<UDPSocket> Logger { get; init; }
+    private bool _disposed = false;
 
     public void Connect(string address, int port, ConnectionType type)
     {
@@ -40,21 +36,54 @@ public class Connector
             var tcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             tcp.Connect(address, port);
-
-            Socket = new StandardSocket(tcp);
         }
-        if (type == ConnectionType.UdpKcp)
+        else
         {
-            var tcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Udp);
+            throw new NotImplementedException();
+        }
+    }
 
-            tcp.Connect(address, port);
+    ~Connector()
+    {
+        Dispose(false);
+    }
 
-            Socket = new KcpSocket(new UDPSocket(
-                new IPEndPoint(IPAddress.Any, 0),
-                new IPEndPoint(IPAddress.Parse(address), port),
-                Logger,
-                UdpManager));
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
         }
 
+        if (disposing)
+        {
+            Socket.SafeHandle.DangerousRelease();
+            Socket.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// This was parepared for the Kestrel server
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public ulong GetHandle()
+    {
+        bool success = false;
+
+        Socket.SafeHandle.DangerousAddRef(ref success);
+
+        if (!success)
+        {
+            throw new InvalidOperationException("failed to add reference to the safe handle");
+        }
+
+        return BitConverter.ToUInt64(BitConverter.GetBytes(Socket.SafeHandle.DangerousGetHandle().ToInt64()));
     }
 }

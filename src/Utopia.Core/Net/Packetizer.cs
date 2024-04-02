@@ -18,12 +18,12 @@ public interface IPacketizer
     /// <summary>
     ///     把字节序列转换为包.
     /// </summary>
-    public object ConvertPacket(Guuid packetTypeId, ReadOnlySequence<byte> data);
+    public object Decode(Guuid packetTypeId, ReadOnlySequence<byte> data);
 
     /// <summary>
     ///     把包转化为字节序列
     /// </summary>
-    public Memory<byte> WritePacket(Guuid packetTypeId, object obj);
+    public Memory<byte> Encode(Guuid packetTypeId, object obj);
 }
 
 /// <summary>
@@ -33,7 +33,7 @@ public class Packetizer : IPacketizer
 {
     public ConcurrentDictionary<Guuid, IPacketFormatter> Formatters { get; init; } = new();
 
-    public object ConvertPacket(Guuid packetTypeId, ReadOnlySequence<byte> data)
+    public object Decode(Guuid packetTypeId, ReadOnlySequence<byte> data)
     {
         if (!this.Formatters.TryGetValue(packetTypeId, out var formatter))
             throw new InvalidOperationException("unknown packet type id");
@@ -41,7 +41,7 @@ public class Packetizer : IPacketizer
         return formatter.GetValue(packetTypeId, data);
     }
 
-    public Memory<byte> WritePacket(Guuid packetTypeId, object obj)
+    public Memory<byte> Encode(Guuid packetTypeId, object obj)
     {
         if (!this.Formatters.TryGetValue(packetTypeId, out var formatter))
             throw new InvalidOperationException("unknown packet type id");
