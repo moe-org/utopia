@@ -13,24 +13,9 @@ namespace Utopia.Core.Net.Packet;
 ///     查询地图包
 /// </summary>
 [MemoryPackable]
-public partial class QueryBlockPacket
+public partial class QueryBlockPacket : IWithPacketId
 {
+    public static Guuid PacketID => InternalHelper.NewInternalGuuid("Net", "Packet", "QueryBlock");
+
     public WorldPosition QueryPosition { get; set; }
-}
-
-public class QueryBlockPacketFormatter : IPacketFormatter
-{
-    public static readonly Guuid PacketTypeId = InternalHelper.NewInternalGuuid("Net", "Packet", "QueryBlock");
-
-    public object GetValue(Guuid _, ReadOnlySequence<byte> packet)
-    {
-        return MemoryPackSerializer.Deserialize<QueryBlockPacket>(packet)!;
-    }
-
-    public Memory<byte> ToPacket(Guuid _, object value)
-    {
-        Guard.IsNotNull(value);
-        Guard.IsAssignableToType(value, typeof(QueryBlockPacket));
-        return MemoryPackSerializer.Serialize((QueryBlockPacket)value);
-    }
 }

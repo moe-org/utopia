@@ -23,6 +23,11 @@ public static class SecureUtilities
         return GenerateRandomString(8);
     }
 
+    /// <summary>
+    /// Only generate string using A-Z a-z and 0-9.
+    /// </summary>
+    /// <param name="length"></param>
+    /// <returns></returns>
     public static string GenerateRandomString(int length)
     {
         using var builder = ZString.CreateStringBuilder(true);
@@ -40,4 +45,15 @@ public static class SecureUtilities
         return builder.ToString();
     }
 
+    public static string GetSha256String(string value)
+    {
+        using var sb = ZString.CreateStringBuilder();
+        Encoding enc = Encoding.UTF8;
+        byte[] result = SHA256.HashData(enc.GetBytes(value));
+
+        foreach (byte b in result)
+            sb.Append(b.ToString("x2"));
+
+        return sb.ToString();
+    }
 }

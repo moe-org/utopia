@@ -15,3 +15,4 @@ public interface IPacketFormatter
 
     Memory<byte> ToPacket(Guuid packetId, object value);
 }
+

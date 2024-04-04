@@ -39,6 +39,11 @@ public class Launcher(LaunchOptions options) : Launcher<LaunchOptions>(options)
             .RegisterInstance(Option.Root)
             .SingleInstance()
             .As<Node>();
+        Builder!
+            .RegisterType<TimeProvider>()
+            .SingleInstance()
+            .AsSelf();
+
     }
 
     protected override void _MainThread()

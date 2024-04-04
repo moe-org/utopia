@@ -12,28 +12,23 @@ using SqlSugar;
 namespace Utopia.Core.Mnagement;
 
 /// <summary>
-/// 代表一个用户
+/// Information of an user with private information like password.
 /// </summary>
 public class User
 {
     /// <summary>
-    /// 唯一ID
+    /// The email of the account.
     /// </summary>
-    [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
-    public long UniqueID { get; set; }
+    [SugarColumn(IsPrimaryKey = true)]
+    public string Email { get; set; } = string.Empty;
 
     /// <summary>
-    /// The password of the user
+    /// The password of the user.
     /// </summary>
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordSha256 { get; set; } = string.Empty;
 
     /// <summary>
-    /// The salt of the password
+    /// The salt of the password.
     /// </summary>
     public string Salt { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 用户的邮箱，可以用于gravatar等处
-    /// </summary>
-    public string Email { get; set; } = string.Empty;
 }

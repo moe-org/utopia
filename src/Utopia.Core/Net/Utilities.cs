@@ -6,6 +6,7 @@ using Autofac;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Utopia.Core.Net.Middlewares;
+using Utopia.Core.Net.Packet;
 
 #endregion
 
@@ -91,5 +92,10 @@ public static class Utilities
         builder.Use(adaptor.InvokeAsync);
 
         return builder;
+    }
+
+    public static async Task ReportError(this ConnectionContext ctx,string msg)
+    {
+        await ctx.PacketWriter.WriteAsync(new ParsedPacket(ErrorPacket.PacketID, new ErrorPacket() { ErrorMessage = msg }), ctx.ConnectionClosed);
     }
 }

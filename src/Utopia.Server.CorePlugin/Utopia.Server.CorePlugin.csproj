@@ -8,6 +8,8 @@
         <!-- for test -->
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
         <CompilerGeneratedFilesOutputPath>obj</CompilerGeneratedFilesOutputPath>
+
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     </PropertyGroup>
 
     <ItemGroup>

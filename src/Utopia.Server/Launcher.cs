@@ -95,6 +95,10 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             .SingleInstance()
             .As<Options>();
         Builder
+            .RegisterType<TimeProvider>()
+            .SingleInstance()
+            .AsSelf();
+        Builder
             .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new FileSystem()))
             .SingleInstance()
             .As<IResourceLocator>();
@@ -178,7 +182,7 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
 
     protected override void _MainThread()
     {
-        TimeUtilities.SetAnNoticeWhenComplete(
+        TimerUtilities.SetAnNoticeWhenComplete(
             Container!.Resolve<ILogger<Launcher>>(), "Server", MainTask!);
         var mainThread = Container!.Resolve<MainThread>();
         mainThread.Launch();

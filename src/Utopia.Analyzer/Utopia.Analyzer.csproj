@@ -11,6 +11,8 @@
 
     <RootNamespace>Utopia.Analyzer</RootNamespace>
     <PackageId>Utopia.Analyzer</PackageId>
+
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>

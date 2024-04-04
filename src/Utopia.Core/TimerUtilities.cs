@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Utopia.Core;
-public static class TimeUtilities
+public static class TimerUtilities
 {
     /// <summary>
     /// 在<see cref="CancellationToken"/> 取消的时候打印提示信息。
@@ -27,9 +27,10 @@ public static class TimeUtilities
         {
             stopwatch.Stop();
             logger.LogInformation(
-                "{name} completed,using {seconds} s", name, stopwatch.Elapsed.TotalSeconds);
+                "{name} canceled,using {seconds} s", name, stopwatch.Elapsed.TotalSeconds);
         });
     }
+
     public static void SetAnNoticeWhenComplete(ILogger logger, string name, Task source)
     {
         Stopwatch stopwatch = new();

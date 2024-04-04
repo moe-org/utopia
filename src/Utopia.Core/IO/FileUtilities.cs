@@ -9,9 +9,9 @@ namespace Utopia.Core.IO;
 
 public static class FileUtilities
 {
-    public static byte[] GetFileMd5(string filename, IFileSystem fileSystem)
+    public static byte[] GetFileSHA256(string filename, IFileSystem fileSystem)
     {
-        using (var md5 = MD5.Create())
+        using (var md5 = SHA256.Create())
         {
             using (var stream = fileSystem.File.OpenRead(filename))
             {
@@ -20,3 +20,4 @@ public static class FileUtilities
         }
     }
 }
+

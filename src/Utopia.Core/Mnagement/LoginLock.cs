@@ -7,13 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static SimpleExec.Command;
 
-namespace Utopia.BuildUtility.ExecHelper;
-public static class Dotnet
+namespace Utopia.Core.Mnagement;
+
+public class LoginLock
 {
-    public static void RunDotnet()
-    {
-
-    }
+    public readonly object Lock = new();
 }

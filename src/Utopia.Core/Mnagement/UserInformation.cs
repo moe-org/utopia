@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Utopia.Core.Mnagement;
 
 /// <summary>
-/// 用户的人类可读
+/// Information of an user information that is not private.
 /// </summary>
 public class UserInformation
 {

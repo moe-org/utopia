@@ -22,6 +22,10 @@ public class ConnectionContext(KestrelConnectionContext context)
 
     public ChannelWriter<ParsedPacket> PacketWriter { get; } = context.PacketToSend.Writer;
 
+    /// <summary>
+    /// The property should be written by LoginPacketHandler.
+    /// And other handle MUST NOT write it, just read only.
+    /// </summary>
     public User? User
     {
         get
@@ -41,4 +45,6 @@ public class ConnectionContext(KestrelConnectionContext context)
     public ConcurrentDictionary<object,object?> Items => new();
 
     public CancellationToken ConnectionClosed => context.ConnectionClosed;
+
+    public Action Abort => context.Abort;
 }

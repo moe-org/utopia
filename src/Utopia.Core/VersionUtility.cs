@@ -24,9 +24,9 @@ public static class VersionUtility
 
         from_assembly:
 
-        var v = assembly.GetName().Version ?? new System.Version(0, 1, 0, 0);
+        var attr = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 
-        return SemanticVersioning.Version.Parse($"{v.Major}.{v.Minor}.{v.Revision}-{v.Build}");
+        return SemanticVersioning.Version.Parse(attr?.InformationalVersion ?? "0.0.1-unknown.version");
     }, true);
 
     public static Version UtopiaCoreVersion => Version.Value;

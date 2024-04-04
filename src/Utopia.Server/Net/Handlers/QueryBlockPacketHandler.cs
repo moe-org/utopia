@@ -36,7 +36,7 @@ public class QueryBlockPacketHandler : IPacketHandler
             info.Entities = entities.Select((i) => i.Id).ToArray();
             info.EntityData = entities.Select((i) => i.SaveAs()).ToArray();
 
-            await context.PacketWriter.WriteAsync(new(AreaInfomrationPacketFormatter.PacketTypeId, info));
+            await context.PacketWriter.WriteAsync(new(AreaInfomrationPacket.PacketID, info));
         }
     }
 }
