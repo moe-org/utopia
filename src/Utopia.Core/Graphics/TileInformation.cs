@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static SimpleExec.Command;
 
-namespace Utopia.BuildUtility.ExecHelper;
-public static class Dotnet
+namespace Utopia.Core.Graphics;
+public class TileInformation
 {
-    public static void RunDotnet()
-    {
-
-    }
+    /// <summary>
+    /// the index in the tile file
+    /// </summary>
+    public ulong Index { get; set; }
 }
+

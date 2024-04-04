@@ -7,21 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Godot;
 
-namespace Utopia.Godot;
-
-public partial class Main : Node
+namespace Utopia.Godot.CorePlugin;
+public class Plugin : IPlugin
 {
-
-    public Launcher Launcher { get; init; }
-
-    public Main()
-    {
-        Launcher = new(new(this));
-        Launcher.Launch();
-    }
-
-
-
 }

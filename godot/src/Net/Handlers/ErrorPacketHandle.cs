@@ -11,7 +11,7 @@ using Godot;
 using Utopia.Core.Net;
 using Utopia.Core.Net.Packet;
 
-namespace Utopia.Godot.src.Net.Handlers;
+namespace Utopia.Godot.Net.Handlers;
 public class ErrorPacketHandle : IPacketHandler<ErrorPacket>
 {
     public Task Handle(ConnectionContext ctx, ErrorPacket packet)

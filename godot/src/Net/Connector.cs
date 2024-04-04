@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Utopia.Core.Net;
 
-namespace Utopia.Godot.src.Net;
+namespace Utopia.Godot.Net;
 
 public enum ConnectionType
 {

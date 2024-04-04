@@ -7,21 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Godot;
+using Utopia.Core.Graphics;
 
-namespace Utopia.Godot;
+namespace Utopia.Godot.Graphics;
 
-public partial class Main : Node
+public class TileReference(TilePack pack,ulong index)
 {
+    public TilePack Pack { get; init; } = pack;
 
-    public Launcher Launcher { get; init; }
-
-    public Main()
-    {
-        Launcher = new(new(this));
-        Launcher.Launch();
-    }
-
-
-
+    public ulong Index { get; init; } = index;
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Plugin>
+  <Namespace>Utopia.Godot.CorePlugin</Namespace>
+  <Name>Core Plugin for Utopia Client</Name>
+  <Id>Utopia.Client.CorePlugin</Id>
+  <Description>A core plugin for utopia client. This is a must for the startup.</Description>
+  <License>AGPL 3.0-or-later</License>
+  <Homepage>https://github.com/mingmoe</Homepage>
+  <Author>Mingmoe</Author>
+  <Version>0.1.0</Version>
+
+  <Deps>
+    <Dep>
+      <Id>Utopia.Client.CorePlugin</Id>
+      <Range>0.1.0</Range>
+    </Dep>
+  </Deps>
+</Plugin>
+

@@ -16,6 +16,8 @@ public partial class Plugin : IPlugin
     {
         add
         {
+            _ = GuuidDeclarations.Test;
+            _ = this.Author;
             _source.Register(value);
         }
         remove
