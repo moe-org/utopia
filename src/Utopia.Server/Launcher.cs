@@ -25,12 +25,14 @@ using Utopia.Core.Exceptions;
 using Utopia.Core.IO;
 using Utopia.Core.Logging;
 using Utopia.Core.Net;
+using Utopia.Core.Net.Packet;
 using Utopia.Core.Plugin;
 using Utopia.Core.Translation;
 using Utopia.Server.Entity;
 using Utopia.Server.Logic;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
+using Utopia.Server.Net.Handlers;
 using static Utopia.Server.Launcher;
 
 namespace Utopia.Server;
@@ -72,9 +74,8 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             new(CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
             RegionInfo.CurrentRegion.TwoLetterISORegionName);
 
-        public KestrelServerOptions KestrelOptions { get; set; } = new();
 
-        public SocketTransportOptions SocketOptions { get; set; } = new();
+        public int Port { get; set; } = DefaultPort;
 
         private Options()
         {
@@ -95,7 +96,7 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             .SingleInstance()
             .As<Options>();
         Builder
-            .RegisterType<TimeProvider>()
+            .RegisterInstance(TimeProvider.System)
             .SingleInstance()
             .AsSelf();
         Builder
@@ -111,6 +112,10 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             .As(typeof(ILogger<>))
             .SingleInstance();
         Builder
+            .RegisterInstance(new TaskFactory())
+            .AsSelf()
+            .SingleInstance();
+        Builder
             .RegisterType<PluginLoader<IPlugin>>()
             .SingleInstance()
             .As<IPluginLoader<IPlugin>>();
@@ -118,6 +123,31 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             RegisterType<TranslationManager>()
             .SingleInstance()
             .As<ITranslationManager>();
+        Builder
+            .RegisterInstance(new FileSystem())
+            .SingleInstance()
+            .As<IFileSystem>();
+        Builder
+            .RegisterType<ErrorPacketHandle>()
+            .AsSelf()
+            .SingleInstance();
+        Builder
+            .Register((ctx) =>
+            {
+                Dispatcher dispatcher = new();
+                dispatcher.Handlers.TryAdd(ErrorPacket.PacketID, ctx.Resolve<ErrorPacketHandle>());
+                return dispatcher;
+            })
+            .SingleInstance()
+            .As<IDispatcher>();
+        Builder.Register((ctx) =>
+        {
+            Packetizer packetizer = new();
+            packetizer.Formatters.TryAdd(ErrorPacket.PacketID, new MemoryPackPacketFormatter<ErrorPacket>());
+            return packetizer;
+        })
+            .SingleInstance()
+            .As<IPacketizer>();
         Builder
             .RegisterType<StandardLogicThread>()
             .SingleInstance()
@@ -157,14 +187,14 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
 
         // kestrel server
         Builder
-            .RegisterInstance(Option.KestrelOptions)
+            .RegisterType<KestrelServerOptions>()
             .SingleInstance();
         Builder
             .RegisterType<OptionsWrapper<KestrelServerOptions>>()
             .As<IOptions<KestrelServerOptions>>()
             .SingleInstance();
         Builder
-            .RegisterInstance(Option.SocketOptions)
+            .RegisterType<SocketTransportOptions>()
             .SingleInstance();
         Builder
             .RegisterType<OptionsWrapper<SocketTransportOptions>>()

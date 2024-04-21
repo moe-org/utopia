@@ -5,21 +5,21 @@ namespace Utopia.Core.Net;
 
 public interface IPacketHandler
 {
-    public Task Handle(ConnectionContext context,Guuid packetId, object packet);
+    public Task Handle(ConnectionContext context, Guuid packetId, object packet);
 }
 
 public interface IPacketHandler<T> : IPacketHandler where T : IWithPacketId
 {
-    Task IPacketHandler.Handle(ConnectionContext context,Guuid pakcetId,object packet)
+    Task IPacketHandler.Handle(ConnectionContext context, Guuid pakcetId, object packet)
     {
-        if(pakcetId != T.PacketID)
+        if (pakcetId != T.PacketID)
         {
             throw new ArgumentException($"this formatter can only process `{T.PacketID}` packet but get a `{pakcetId}` packet");
         }
 
-        Guard.IsAssignableToType<T>(pakcetId);
+        Guard.IsAssignableToType<T>(packet);
 
-        return Handle(context,(T)packet);
+        return Handle(context, (T)packet);
     }
 
     public Task Handle(ConnectionContext ctx, T packet);

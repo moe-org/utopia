@@ -8,8 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Godot.CorePlugin;
-public partial class Plugin : IPlugin
+namespace Utopia.Server.Test;
+public class SimpleKestrelInternetTest
 {
-}
 
+    [Fact]
+    public void ErrorPacketTest()
+    {
+
+    }
+}

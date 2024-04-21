@@ -14,6 +14,11 @@ using Autofac;
 using Utopia.Core.IO;
 using Utopia.Core.Logging;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Utopia.Core.Net;
+using System.Net.Sockets;
+using System.Net;
+using Utopia.Core.Net.Packet;
+using MemoryPack;
 
 namespace Utopia.Server;
 
@@ -70,6 +75,7 @@ public sealed class MainThread
     public void Launch()
     {
         Thread.CurrentThread.Name = "Server Main Thread";
+        CancellationTokenSource kestrelSource = new();
 
         EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
         {
@@ -79,6 +85,21 @@ public sealed class MainThread
                 Logger.LogInformation("log system initialized");
                 ResourceLocator.CreateIfNotExist();
                 Logger.LogInformation("create directory for resources");
+            }
+        });
+        EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
+        {
+            if (e is { Cycle: LifeCycle.StartNetThread, Order: LifeCycleOrder.Current })
+            {
+                Logger.LogInformation("start kestrel server");
+                Container.Resolve<KestrelServer>().StartAsync(new EmptyApplication(), new());
+            }
+        });
+        EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
+        {
+            if (e is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.Current })
+            {
+                Container.Resolve<KestrelServer>().StopAsync(new()).Wait();
             }
         });
 
@@ -105,6 +126,40 @@ public sealed class MainThread
             // stop when any of threads stop
             var task = Task.WhenAll(LogicThread.Task);
 
+            // test
+            Thread.Sleep(200);
+
+            Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            socket.Connect(new IPAddress(new byte[] { 127, 0, 0, 1 }), Option.Port);
+
+            // construct error packet
+            var errorPacket = new ErrorPacket()
+            {
+                ErrorMessage = "this is a test error packet"
+            };
+
+            var obj = (new MemoryPackPacketFormatter<ErrorPacket>()).ToPacket(ErrorPacket.PacketID, errorPacket);
+
+            var rawPacket = MemoryPackSerializer.Serialize<RawPacket>(new()
+            {
+                Data = new(obj),
+                ID = ErrorPacket.PacketID
+            });
+
+            var length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(rawPacket.Length));
+
+            MemoryStream buf = new();
+            buf.Write(length);
+            buf.Write(rawPacket);
+
+            socket.Send(buf.ToArray());
+
+            Thread.Sleep(1000);
+
+            socket.Close();
+            buf.Dispose();
+            socket.Dispose();
+
             task.Wait();
         }
         catch (Exception ex)
@@ -117,6 +172,7 @@ public sealed class MainThread
         {
             Logger.LogInformation("stop");
             ChangeLifecycle(LifeCycle.Stop);
+            kestrelSource.Cancel();
         }
 
         return;

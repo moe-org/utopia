@@ -30,7 +30,7 @@ public static class KestrelHelper
         {
             var opt = new KestrelServerOptions();
 
-            opt.ListenAnyIP(Launcher.Options.DefaultPort, (endPointOption) =>
+            opt.ListenAnyIP(context.Resolve<Launcher.Options>().Port, (endPointOption) =>
             {
                 endPointOption
                     .EnableMiddleware(context)

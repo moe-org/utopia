@@ -19,10 +19,8 @@ public class PacketWriteMiddleware : IMiddleware
 {
     public async Task InvokeAsync(KestrelConnectionContext context, IMiddleware.UtopiaConnectionDelegate next)
     {
-        await next(context);
-
         // write packet
-        await foreach (var packet in context.PacketToWrite.Reader.ReadAllAsync(context.Connection.ConnectionClosed))
+        while (context.PacketToWrite.Reader.TryRead(out var packet))
         {
             var encodedPacket = MemoryPack.MemoryPackSerializer.Serialize(packet);
 
@@ -32,5 +30,8 @@ public class PacketWriteMiddleware : IMiddleware
             await context.Transport.Output.WriteAsync(length);
             await context.Transport.Output.WriteAsync(encodedPacket);
         }
+
+        await next(context);
     }
 }
+

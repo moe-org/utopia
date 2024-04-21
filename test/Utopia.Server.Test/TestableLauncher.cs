@@ -34,7 +34,6 @@ public class TestableLauncher : Launcher
         // TODO: Register Tastable logger
         // TODO: Register Testable things
         Builder!.RegisterInstance<IFileSystem>(FileSystem).SingleInstance();
+        Builder!.RegisterInstance<>
     }
-
-
 }

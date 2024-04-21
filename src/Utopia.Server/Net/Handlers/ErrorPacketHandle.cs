@@ -18,7 +18,7 @@ public class ErrorPacketHandle : IPacketHandler<ErrorPacket>
 
     public Task Handle(ConnectionContext ctx, ErrorPacket packet)
     {
-        Logger.LogError("get an error from remote(connection id:{connectionId}):{error}", ctx.ConnectionId,packet.ErrorMessage);
+        Logger.LogError("get an error from remote(connection id:{connectionId}):{error}", ctx.ConnectionId, packet.ErrorMessage);
 
         ctx.Abort();
 

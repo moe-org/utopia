@@ -14,9 +14,9 @@ using Microsoft.Extensions.DependencyInjection;
 using IContainer = Autofac.IContainer;
 
 namespace Utopia.Core;
-public abstract class Launcher<T>(T option)
+public abstract class Launcher<T>
 {
-    public T Option { get; init; } = option;
+    public T Option { get; init; }
 
     protected WeakThreadSafeEventSource<IContainer> _source = new();
 
@@ -45,6 +45,12 @@ public abstract class Launcher<T>(T option)
     protected abstract void _BuildDefaultContainer();
 
     protected abstract void _MainThread();
+
+    public Launcher(T option)
+    {
+        Option = option;
+        _BuildDefaultContainer();
+    }
 
     /// <summary>
     /// 启动。启动之后<see cref="Builder"/>被置为null。

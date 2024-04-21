@@ -73,12 +73,23 @@ public static class Utilities
     {
         builder.Use(async (context, next) =>
         {
-            if(context is KestrelConnectionContext uContext)
+            if (context.Items[KestrelInitlizeRawMiddleware.Key] != null)
+            {
+                await middleware.InvokeAsync((KestrelConnectionContext)context.Items[KestrelInitlizeRawMiddleware.Key]!, async (nContext) =>
+                {
+                    await next(nContext.Connection);
+                });
+            }
+            else if (context is KestrelConnectionContext uContext)
             {
                 await middleware.InvokeAsync(uContext, async (nContext) =>
                 {
                     await next(nContext.Connection);
                 });
+            }
+            else
+            {
+                throw new NotImplementedException($"The context({context.GetType().FullName}) is not KestrelConnectionContext");
             }
         });
 
@@ -94,7 +105,7 @@ public static class Utilities
         return builder;
     }
 
-    public static async Task ReportError(this ConnectionContext ctx,string msg)
+    public static async Task ReportError(this ConnectionContext ctx, string msg)
     {
         await ctx.PacketWriter.WriteAsync(new ParsedPacket(ErrorPacket.PacketID, new ErrorPacket() { ErrorMessage = msg }), ctx.ConnectionClosed);
     }

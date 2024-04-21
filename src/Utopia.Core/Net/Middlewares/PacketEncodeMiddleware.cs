@@ -13,7 +13,7 @@ public class PacketEncodeMiddleware : IMiddleware
 {
     public async Task InvokeAsync(KestrelConnectionContext context, IMiddleware.UtopiaConnectionDelegate next)
     {
-        await foreach (var packet in context.PacketToSend.Reader.ReadAllAsync(context.ConnectionClosed))
+        while (context.PacketToSend.Reader.TryRead(out var packet))
         {
             var parsed = context.Packetizer.Encode(packet.ID, packet.Obj);
 

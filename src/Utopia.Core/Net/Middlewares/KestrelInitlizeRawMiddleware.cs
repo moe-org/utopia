@@ -17,16 +17,23 @@ public class KestrelInitlizeRawMiddleware
 {
     public required ILifetimeScope LifetimeScope { get; init; }
 
+    public const string Key = "Utopia Connection Context";
+
     public async Task InvokeAsync(Microsoft.AspNetCore.Connections.ConnectionContext context, ConnectionDelegate callback)
     {
-        var connectionContainer = LifetimeScope.BeginLifetimeScope(context, builder =>
+        if (!context.Items.ContainsKey(Key))
         {
-            builder.RegisterInstance(context).AsSelf().ExternallyOwned();
-            builder.RegisterType<KestrelConnectionContext>().AsSelf().SingleInstance();
-        });
+            var connectionContainer = LifetimeScope.BeginLifetimeScope(context, builder =>
+            {
+                builder.RegisterInstance(context).As<Microsoft.AspNetCore.Connections.ConnectionContext>().ExternallyOwned();
+                builder.RegisterType<KestrelConnectionContext>().AsSelf().SingleInstance();
+            });
 
-        var uContext = connectionContainer.Resolve<KestrelConnectionContext>();
+            context.Items[Key] = connectionContainer.Resolve<KestrelConnectionContext>();
 
-        await callback.Invoke(uContext);
+            context.ConnectionClosed.Register(connectionContainer.Dispose);
+        }
+
+        await callback.Invoke((KestrelConnectionContext)context.Items[Key]!);
     }
 }

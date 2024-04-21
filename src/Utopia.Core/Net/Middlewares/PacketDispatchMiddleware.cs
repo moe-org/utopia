@@ -17,23 +17,18 @@ namespace Utopia.Core.Net.Middlewares;
 
 public class PacketDispatchMiddleware : IMiddleware
 {
-    public required Logger<PacketDispatchMiddleware> Logger { get; init; }
-
-    public required TaskFactory PacketDispatchTaskFactory { get; init; }
+    public required ILogger<PacketDispatchMiddleware> Logger { get; init; }
 
     public async Task InvokeAsync(KestrelConnectionContext context, UtopiaConnectionDelegate next)
     {
-        await foreach (var packet in context.PacketToDispatch.Reader.ReadAllAsync(context.ConnectionClosed))
+        while (context.PacketToDispatch.Reader.TryRead(out var packet))
         {
-            _ = PacketDispatchTaskFactory.StartNew(async () =>
-            {
-                var result = await context.Dispatcher.DispatchPacket(new(context), packet.ID, packet);
+            var result = await context.Dispatcher.DispatchPacket(new(context), packet.ID, packet.Obj);
 
-                if (!result)
-                {
-                    Logger.LogError("Packet with Guuid {guuid} has no dispatcher", packet.ID);
-                }
-            });
+            if (!result)
+            {
+                Logger.LogError("Packet with Guuid {guuid} has no dispatcher", packet.ID);
+            }
         }
 
         await next(context);

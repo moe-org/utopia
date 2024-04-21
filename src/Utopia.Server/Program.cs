@@ -86,7 +86,6 @@ public static class Program
             throw new ArgumentException("you should not use any argument");
         }
 
-
         var opt = Launcher.Options.Default();
 
         var launcher = new Launcher(opt);

@@ -61,7 +61,7 @@ public class LoginPacketHandler : IPacketHandler<LoginPacket>
                 // if the password is wrong
                 if(packet.Password != u.PasswordSha256)
                 {
-                    ctx.ReportError("the password is wrong").Wait();
+                    ctx.ReportError("failed to login:the password is wrong").Wait();
                     return Task.CompletedTask;
                 }
 

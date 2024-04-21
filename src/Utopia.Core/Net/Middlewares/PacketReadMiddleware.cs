@@ -5,11 +5,13 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Logging;
 using NetTaste;
 using Utopia.Core.Net.Packet;
 using static Utopia.Core.Net.IMiddleware;
@@ -17,56 +19,65 @@ using static Utopia.Core.Net.IMiddleware;
 namespace Utopia.Core.Net.Middlewares;
 public class PacketReadMiddleware : IMiddleware
 {
+    public required ILogger<PacketReadMiddleware> Logger { get; init; }
+
     public async Task InvokeAsync(KestrelConnectionContext context, UtopiaConnectionDelegate next)
     {
         var input = context.Connection.Transport.Input;
         var token = context.Connection.ConnectionClosed;
 
-        // read packet length
-        int length;
+        // always read
+        while (!token.IsCancellationRequested)
         {
-            var result = await input.ReadAtLeastAsync(sizeof(int), token);
-
-            if (!result.IsCompleted)
+            // read packet length
+            int length;
             {
-                return;
+                var result = await input.ReadAtLeastAsync(sizeof(int), token);
+
+                if (result.IsCanceled || result.IsCompleted)
+                {
+                    break;
+                }
+
+                var buf = new byte[sizeof(int)];
+
+                result.Buffer.Slice(result.Buffer.Start, sizeof(int)).CopyTo(buf);
+
+                // note: covert network endian to native
+                length = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buf));
+
+                input.AdvanceTo(result.Buffer.GetPosition(sizeof(int)));
+            }
+            // read packet
+            RawPacket? packet;
+            {
+                var result = await input.ReadAtLeastAsync(length, token);
+
+                if (result.IsCanceled || result.IsCompleted)
+                {
+                    break;
+                }
+
+                var buf = result.Buffer.Slice(0, length);
+
+                packet = MemoryPack.MemoryPackSerializer.Deserialize<RawPacket>(buf);
+
+                if (packet == null)
+                {
+                    throw new InvalidDataException("MemoryPackSerializer.Deserialize() returns null");
+                }
+
+                input.AdvanceTo(buf.GetPosition(length));
             }
 
-            var buf = new byte[sizeof(int)];
+            // write packet
+            await context.PacketToParse.Writer.WriteAsync(packet, token);
 
-            result.Buffer.Slice(0, 4).CopyTo(buf);
-
-            // note: covert network endian to native
-            length = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buf));
-
-            input.AdvanceTo(result.Buffer.GetPosition(sizeof(int)));
+            // process the packet
+            await next.Invoke(context);
         }
-        // read packet
-        RawPacket? packet;
-        {
-            var result = await input.ReadAtLeastAsync(length, token);
 
-            if (!result.IsCanceled)
-            {
-                return;
-            }
-
-            var buf = result.Buffer.Slice(0, length);
-
-            packet = MemoryPack.MemoryPackSerializer.Deserialize<RawPacket>(buf);
-
-            if (packet == null)
-            {
-                throw new InvalidDataException("MemoryPackSerializer.Deserialize() returns null");
-            }
-
-            input.AdvanceTo(buf.GetPosition(length));
-        }
-
-        // write packet
-        await context.PacketToParse.Writer.WriteAsync(packet, token);
-
-        // call next always
+        // process the packet
         await next.Invoke(context);
     }
 }
