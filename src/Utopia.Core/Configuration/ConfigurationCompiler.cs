@@ -20,94 +20,110 @@ using Microsoft.CodeAnalysis.CSharp;
 using System.Security.Cryptography.Xml;
 using Microsoft.CodeAnalysis.Emit;
 using Utopia.Core.Security;
+using HarmonyLib;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using static Utopia.Core.Configuration.ConfigurationCompiler;
 
 namespace Utopia.Core.Configuration;
+
 public class ConfigurationCompiler
 {
-    private const string SourceCodeTemplate =
+    private static readonly IEnumerable<string> DefaultNamespaces =
+           new[]
+           {
+                "System",
+                "System.IO",
+                "System.Net",
+                "System.Linq",
+                "System.Text",
+                "System.Text.RegularExpressions",
+                "System.Collections.Generic",
+                "System.Diagnostics"
+           };
+
+    public const string SourceCodeTemplate =
         """
-        {header}
+        {usings}
 
-        namespace Mingmoe.Configuration.Generated;
+        internal class Configuration{
+            private static void Configure(object input){
+                var config = {type}input;
 
-        internal sealed class {class name}{
-
-            public static void Configurate(in {config type} config){
-                {source code}
+                {source}
             }
-
-            private {class name}(){}
         }
         
         """;
 
     public Dictionary<string, string> CscOptions => [];
 
-    public List<MetadataReference> References => [];
+    public readonly List<MetadataReference> References = [];
 
     public ConfigurationCompiler()
     {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
         // register current references
-        foreach(var assembly in assemblies)
+        foreach (var assembly in assemblies)
         {
-            if(assembly.Location != string.Empty)
+            if (string.IsNullOrEmpty(assembly.Location))
             {
-                References.Add(MetadataReference.CreateFromFile(assembly.Location));
+                continue;
+            }
+
+            if (!File.Exists(assembly.Location))
+            {
+                continue;
+            }
+
+            try
+            {
+                var file = Assembly.LoadFile(assembly.Location);
+
+                if (file.ImageRuntimeVersion != null)
+                {
+                    References.Add(MetadataReference.CreateFromFile(assembly.Location));
+                }
+            }
+            catch (Exception)
+            {
+                // ignore the dll that we cannot load
             }
         }
     }
 
-    public bool TryCompile<T>(string header,string code, out Diagnostic[] errors,T option)
+    public class GlobalScriptObject<T>(T obj) where T : class
     {
-        var className = $"GeneratedConfigurationClass_{SecureUtilities.GenerateRandomString(16)}";
+        public T config { get; init; } = obj;
+    }
 
-        code = SourceCodeTemplate
-            .Replace("{source code}", code)
-            .Replace("{class name}", className)
-            .Replace("{header}",header);
+    public async Task InvokeFor<T>(string code, T option, IEnumerable<Assembly>? usings = null, IEnumerable<string>? imports = null, string? filePath = null) where T : class
+    {
+        var scriptOption = ScriptOptions.Default;
+        scriptOption = scriptOption.AddReferences(References);
 
-        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
+        scriptOption = scriptOption.WithFilePath(filePath ?? "unknown file");
 
-        CSharpCompilation compilation = CSharpCompilation.Create(
-                "generated_configuration",
-                syntaxTrees: new[] { syntaxTree },
-                references: References,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-        using (var ms = new MemoryStream())
+        if (usings != null)
         {
-            // write IL code into memory
-            EmitResult result = compilation.Emit(ms);
-
-            if (!result.Success)
-            {
-                // handle exceptions
-                IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
-                    diagnostic.Severity == DiagnosticSeverity.Warning || 
-                    diagnostic.Severity == DiagnosticSeverity.Error);
-
-                errors = failures.ToArray();
-                return false;
-            }
-            else
-            {
-                // load this 'virtual' DLL so that we can use
-                ms.Seek(0, SeekOrigin.Begin);
-                Assembly assembly = Assembly.Load(ms.ToArray());
-
-                // create instance of the desired class and call the desired function
-                Type type = assembly.GetType($"Mingmoe.Configuration.Generated.{className}")!;
-                var method = type.GetMethod("Configurate", BindingFlags.IgnoreCase | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)!;
-
-                // invoke
-                method.Invoke(null, [option]);
-            }
+            scriptOption = scriptOption.WithReferences(usings);
+        }
+        if (imports != null)
+        {
+            scriptOption = scriptOption.WithImports(imports);
         }
 
-        errors = [];
-        return true;
+        scriptOption = scriptOption
+            .WithImports("System")
+            .WithImports("System.IO")
+            .WithImports("System.Collections.Generic")
+            .WithImports("System.Text");
+
+        var script = CSharpScript.Create(code, scriptOption, typeof(GlobalScriptObject<T>));
+        var state = await script.RunAsync(new GlobalScriptObject<T>(option));
+
+        return;
     }
 
 }

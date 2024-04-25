@@ -1,52 +1,53 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <RootNamespace>Utopia.Core</RootNamespace>
-      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Utopia.Core</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Autofac" Version="8.0.0" />
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0" />
-        <PackageReference Include="AutoMapper" Version="13.0.1" />
-        <PackageReference Include="CommunityToolkit.Common" Version="8.2.2" />
-        <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.2" />
-        <PackageReference Include="MemoryPack" Version="1.10.0" />
-        <PackageReference Include="NLog" Version="5.2.8" />
-        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
-        <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-        <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
-        <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="20.0.15" />
-        <PackageReference Include="TestableIO.System.IO.Abstractions.Extensions" Version="2.2.5" />
-        <PackageReference Include="ZString" Version="2.5.1" />
-        <PackageReference Include="Npgsql" Version="8.0.2" />
-      <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.8" />
-      <PackageReference Include="SqlSugarCore" Version="5.1.4.149-preview35" />
-        <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
-      <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
-        <PackageReference Include="SharpCompress" Version="0.36.0" />
-        <PackageReference Include="Kcp" Version="2.7.0" />
-        <PackageReference Include="MessageFormat" Version="7.1.0" />
-        <PackageReference Include="Lib.Harmony" Version="2.3.1.1" />
-      <PackageReference Include="SemanticVersioning" Version="2.0.2" />
-      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="8.0.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="CommunityToolkit.Common" Version="8.2.2" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.2" />
+    <PackageReference Include="MemoryPack" Version="1.10.0" />
+    <PackageReference Include="NLog" Version="5.2.8" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.8" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
+    <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="20.0.15" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Extensions" Version="2.2.5" />
+    <PackageReference Include="ZString" Version="2.5.1" />
+    <PackageReference Include="Npgsql" Version="8.0.2" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.8" />
+    <PackageReference Include="SqlSugarCore" Version="5.1.4.149-preview35" />
+    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
+    <PackageReference Include="SharpCompress" Version="0.36.0" />
+    <PackageReference Include="Kcp" Version="2.7.0" />
+    <PackageReference Include="MessageFormat" Version="7.1.0" />
+    <PackageReference Include="Lib.Harmony" Version="2.3.1.1" />
+    <PackageReference Include="SemanticVersioning" Version="2.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.8.0" />
 
-      <PackageReference Include="TestableIO.System.IO.Abstractions.Analyzers" Version="2022.0.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      </PackageReference>
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Analyzers" Version="2022.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
 
-        <ProjectReference Include="../Mingmoe.Demystifier/src/Mingmoe.Demystifier/Mingmoe.Demystifier.csproj" />
-        <ProjectReference Include="../Utopia.Shared/Utopia.Shared.csproj" />
-      
-      <ProjectReference Include="../XamlX/src/XamlX/XamlX.csproj">
-        <Properties>XAMLX_INTERNAL=False</Properties>
-      </ProjectReference>
+    <ProjectReference Include="../Mingmoe.Demystifier/src/Mingmoe.Demystifier/Mingmoe.Demystifier.csproj" />
+    <ProjectReference Include="../Utopia.Shared/Utopia.Shared.csproj" />
 
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    </ItemGroup>
+    <ProjectReference Include="../XamlX/src/XamlX/XamlX.csproj">
+      <Properties>XAMLX_INTERNAL=False</Properties>
+    </ProjectReference>
+
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 </Project>
