@@ -4,3 +4,6 @@
 [submodule "src/XamlX"]
 	path = src/XamlX
 	url = https://github.com/mingmoe/XamlX
+[submodule "src/Mingmoe.Tiled"]
+	path = src/Mingmoe.Tiled
+	url = https://github.com/mingmoe/mingmoe.tiled
