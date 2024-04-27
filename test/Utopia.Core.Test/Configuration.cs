@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ public class Configuration
     [Fact]
     public async Task ConfigurationRunTest()
     {
-        ConfigurationCompiler compiler = new();
+        ConfigurationCompiler compiler = new(new FileSystem());
 
         Option opt = new();
 
@@ -50,7 +51,7 @@ public class Configuration
     [Fact]
     public async Task ConfigurationImportAndRunTest()
     {
-        ConfigurationCompiler compiler = new();
+        ConfigurationCompiler compiler = new(new FileSystem());
 
         Option opt = new();
 

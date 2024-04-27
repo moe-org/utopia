@@ -8,11 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Godot.CorePlugin;
-public partial class Plugin : IPlugin
-{
-    public event Action PluginDeactivated { add => throw new NotImplementedException(); remove => throw new NotImplementedException(); }
+namespace Utopia.Core.Configuration.Xaml.Standard;
 
-    public void Dispose() => throw new NotImplementedException();
+public interface IAddChild
+{
+    void AddChild(object child);
 }
 
+public interface IAddChild<T>
+{
+    void AddChild(T child);
+}

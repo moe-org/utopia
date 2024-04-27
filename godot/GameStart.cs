@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Godot;
-using Utopia.Godot;
+using Utopia.Godot.Utility;
 
 public partial class GameStart : Node
 {

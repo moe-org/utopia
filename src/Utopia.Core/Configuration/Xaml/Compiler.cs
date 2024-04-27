@@ -5,40 +5,37 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
+using Microsoft.CodeAnalysis;
+using Utopia.Shared;
+using XamlX;
 using XamlX.Compiler;
 using XamlX.Emit;
+using XamlX.IL;
+using XamlX.Parsers;
 using XamlX.Transform;
 using XamlX.Transform.Transformers;
 using XamlX.TypeSystem;
 
 namespace Utopia.Core.Configuration.Xaml;
 
-public sealed class Compiler : XamlCompiler<object, IXamlEmitResult>
+public sealed class Compiler : XamlILCompiler
 {
-    public static Compiler CreateDefault(RuntimeTypeSystem typeSystem, params Type[] additionalTypes)
+    public required Context Context { get; init; }
+
+    public required List<XamlDiagnostic> Diagnostics { get; init; }
+
+    public static Compiler CreateFrom(TransformerConfiguration configuration, List<XamlDiagnostic> diagnostics)
     {
-        var mappings = new XamlLanguageTypeMappings(typeSystem);
-        foreach (var additionalType in additionalTypes)
+        return new Compiler(configuration, new())
         {
-            if (!typeSystem.CsAssemblies.Contains(additionalType.Assembly))
-            {
-                typeSystem = new RuntimeTypeSystem([.. typeSystem.CsAssemblies, additionalType.Assembly]);
-            }
-            mappings.XmlnsAttributes.Add(new RuntimeType(new RuntimeAssembly(additionalType.Assembly),additionalType));
-        }
-
-        var diagnosticsHandler = new XamlDiagnosticsHandler();
-
-        var configuration = new TransformerConfiguration(
-            typeSystem,
-            typeSystem.Assemblies.First(),
-            mappings,
-            diagnosticsHandler: diagnosticsHandler);
-        return new Compiler(configuration);
+            Context = new((SreTypeSystem)configuration.TypeSystem),
+            Diagnostics = diagnostics
+        };
     }
 
-    private Compiler(TransformerConfiguration configuration)
-        : base(configuration, new XamlLanguageEmitMappings<object, IXamlEmitResult>(), false)
+    private Compiler(TransformerConfiguration configuration, XamlLanguageEmitMappings<IXamlILEmitter, XamlILNodeEmitResult> mappings)
+        : base(configuration, mappings, true)
     {
         Transformers.Add(new KnownDirectivesTransformer());
         Transformers.Add(new XamlIntrinsicsTransformer());
@@ -46,12 +43,45 @@ public sealed class Compiler : XamlCompiler<object, IXamlEmitResult>
         Transformers.Add(new TypeReferenceResolver());
     }
 
-    protected override XamlEmitContext<object, IXamlEmitResult> InitCodeGen(
-        IFileSource file,
-        IXamlTypeBuilder<object> declaringType,
-        object codeGen,
-        XamlRuntimeContext<object, IXamlEmitResult> context,
-        bool needContextLocal) =>
-        throw new NotSupportedException();
-}
+    private static (Func<IServiceProvider?, object>? create, Action<IServiceProvider?, object?> populate)
+        GetCallbacks(Type created)
+    {
+        var isp = Expression.Parameter(typeof(IServiceProvider));
+        var createCb = created.GetMethod("Build") is { } buildMethod
+            ? Expression.Lambda<Func<IServiceProvider?, object>>(
+                Expression.Convert(Expression.Call(buildMethod, isp), typeof(object)), isp).Compile()
+            : null;
 
+        var epar = Expression.Parameter(typeof(object));
+        var populate = created.GetMethod("Populate")!;
+        isp = Expression.Parameter(typeof(IServiceProvider));
+        var populateCb = Expression.Lambda<Action<IServiceProvider?, object?>>(
+            Expression.Call(populate, isp, Expression.Convert(epar, populate.GetParameters()[1].ParameterType)),
+            isp, epar).Compile();
+
+        return (createCb, populateCb);
+    }
+
+    public (Func<IServiceProvider?, object>? create, Action<IServiceProvider?, object?> populate) Compile(string xaml)
+    {
+        var parsedTypeBuilder = Context.CreateTypeBuilder(Guid.NewGuid().ToString("N"), true);
+        var contextTypeBuilder = Context.CreateTypeBuilder(parsedTypeBuilder.XamlTypeBuilder.Name + "Context", false);
+
+        var contextTypeDef = XamlILContextDefinition.GenerateContextClass(
+                    contextTypeBuilder.XamlTypeBuilder,
+                    _configuration.TypeSystem,
+                    _configuration.TypeMappings,
+                    new XamlLanguageEmitMappings<IXamlILEmitter, XamlILNodeEmitResult>());
+
+        var document = XDocumentXamlParser.Parse(xaml);
+        Transform(document);
+        Diagnostics.ThrowExceptionIfAnyError();
+
+        Compile(document, parsedTypeBuilder.XamlTypeBuilder, contextTypeDef, "Populate", "Build", "XamlNamespaceInfo", XmlNamespace.Utopia, null);
+
+        parsedTypeBuilder.XamlTypeBuilder.CreateType();
+        contextTypeBuilder.XamlTypeBuilder.CreateType();
+
+        return GetCallbacks(parsedTypeBuilder.RuntimeType);
+    }
+}

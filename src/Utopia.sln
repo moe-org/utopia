@@ -37,7 +37,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XamlX", "XamlX\src\XamlX\Xa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.BuildScript", "..\build\Utopia.BuildScript\Utopia.BuildScript.csproj", "{CE1A9C82-7672-468A-AE50-9CEBC2891642}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utopia.Godot.CorePlugin", "Utopia.Godot.CorePlugin\Utopia.Godot.CorePlugin.csproj", "{93629A55-3534-47F1-8824-6408B7F0E38A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utopia.Godot.CorePlugin", "Utopia.Godot.CorePlugin\Utopia.Godot.CorePlugin.csproj", "{93629A55-3534-47F1-8824-6408B7F0E38A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mingmoe.Tiled", "Mingmoe.Tiled\Mingmoe.Tiled\Mingmoe.Tiled\Mingmoe.Tiled.csproj", "{0367DD73-4538-4AA0-8C50-9DD7FBB57209}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XamlX.Runtime", "XamlX\src\XamlX.Runtime\XamlX.Runtime.csproj", "{F9ECD248-B65E-4D3C-81C1-369EC31A340E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,6 +101,14 @@ Global
 		{93629A55-3534-47F1-8824-6408B7F0E38A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93629A55-3534-47F1-8824-6408B7F0E38A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93629A55-3534-47F1-8824-6408B7F0E38A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0367DD73-4538-4AA0-8C50-9DD7FBB57209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0367DD73-4538-4AA0-8C50-9DD7FBB57209}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0367DD73-4538-4AA0-8C50-9DD7FBB57209}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0367DD73-4538-4AA0-8C50-9DD7FBB57209}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9ECD248-B65E-4D3C-81C1-369EC31A340E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9ECD248-B65E-4D3C-81C1-369EC31A340E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9ECD248-B65E-4D3C-81C1-369EC31A340E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9ECD248-B65E-4D3C-81C1-369EC31A340E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

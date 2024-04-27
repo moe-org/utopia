@@ -24,14 +24,14 @@ using HarmonyLib;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using static Utopia.Core.Configuration.ConfigurationCompiler;
+using System.IO.Abstractions;
 
 namespace Utopia.Core.Configuration;
 
 public class ConfigurationCompiler
 {
-    private static readonly IEnumerable<string> DefaultNamespaces =
-           new[]
-           {
+    public static readonly IEnumerable<string> DefaultNamespaces =
+           [
                 "System",
                 "System.IO",
                 "System.Net",
@@ -40,28 +40,15 @@ public class ConfigurationCompiler
                 "System.Text.RegularExpressions",
                 "System.Collections.Generic",
                 "System.Diagnostics"
-           };
-
-    public const string SourceCodeTemplate =
-        """
-        {usings}
-
-        internal class Configuration{
-            private static void Configure(object input){
-                var config = {type}input;
-
-                {source}
-            }
-        }
-        
-        """;
-
-    public Dictionary<string, string> CscOptions => [];
+           ];
 
     public readonly List<MetadataReference> References = [];
 
-    public ConfigurationCompiler()
+    private IFileSystem FileSystem { get; init; }
+
+    public ConfigurationCompiler(IFileSystem fileSystem)
     {
+        FileSystem = fileSystem;
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
         // register current references
@@ -72,7 +59,7 @@ public class ConfigurationCompiler
                 continue;
             }
 
-            if (!File.Exists(assembly.Location))
+            if (!fileSystem.File.Exists(assembly.Location))
             {
                 continue;
             }
@@ -93,9 +80,11 @@ public class ConfigurationCompiler
         }
     }
 
-    public class GlobalScriptObject<T>(T obj) where T : class
+    public class GlobalScriptObject<T>(T obj, string? path) where T : class
     {
         public T config { get; init; } = obj;
+
+        public string? scriptPath { get; init; } = path;
     }
 
     public async Task InvokeFor<T>(string code, T option, IEnumerable<Assembly>? usings = null, IEnumerable<string>? imports = null, string? filePath = null) where T : class
@@ -115,13 +104,10 @@ public class ConfigurationCompiler
         }
 
         scriptOption = scriptOption
-            .WithImports("System")
-            .WithImports("System.IO")
-            .WithImports("System.Collections.Generic")
-            .WithImports("System.Text");
+            .WithImports(DefaultNamespaces);
 
         var script = CSharpScript.Create(code, scriptOption, typeof(GlobalScriptObject<T>));
-        var state = await script.RunAsync(new GlobalScriptObject<T>(option));
+        await script.RunAsync(new GlobalScriptObject<T>(option, filePath));
 
         return;
     }

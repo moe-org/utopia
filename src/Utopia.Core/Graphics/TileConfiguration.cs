@@ -24,5 +24,5 @@ public class TileConfiguration
     /// </summary>
     public int Height { get; set; } = 32;
 
-    public Dictionary<string,TileInformation> Tiles { get; set; } = [];
+    public Dictionary<Guuid, TileInformation> Tiles { get; set; } = [];
 }

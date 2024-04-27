@@ -4,17 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Utopia.Core.Graphics;
-
-public class TileInformation
+namespace Utopia.Shared;
+public static class XmlNamespace
 {
-    /// <summary>
-    /// the index in the tile file
-    /// </summary>
-    public long Index { get; set; }
+    public const string Utopia = "http://utopia.kawayi.moe";
 }
-

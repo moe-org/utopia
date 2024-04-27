@@ -8,15 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="client.plugin.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AdditionalFiles Include="client.plugin.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\godot\Utopia.Godot.csproj" />
+    <ProjectReference Include="../Utopia.Analyzer/Utopia.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

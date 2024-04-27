@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using NLog;
 using Utopia.Core;
 using Utopia.Core.Translation;
+using Utopia.Shared;
 using ArgumentSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax;
 using IdentifierNameSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax;
 using InvocationExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax;
@@ -189,7 +190,7 @@ public static class TranslationFinder
             using (var writer = XmlWriter.Create(stream, settings))
             {
                 writer.WriteStartDocument();
-                writer.WriteStartElement(nameof(TranslationItems), Xml.Namespace);
+                writer.WriteStartElement(nameof(TranslationItems), XmlNamespace.Utopia);
 
                 {
                     foreach (var item in items)

@@ -8,11 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utopia.Godot.CorePlugin;
-public partial class Plugin : IPlugin
+namespace Utopia.Core.Configuration.Xaml.Standard;
+public interface IUriContext
 {
-    public event Action PluginDeactivated { add => throw new NotImplementedException(); remove => throw new NotImplementedException(); }
-
-    public void Dispose() => throw new NotImplementedException();
+    Uri BaseUri { get; set; }
 }
-

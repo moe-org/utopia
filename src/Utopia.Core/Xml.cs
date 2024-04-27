@@ -13,11 +13,6 @@ namespace Utopia.Core;
 /// </summary>
 public static class Xml
 {
-    /// <summary>
-    ///     For moe
-    /// </summary>
-    public const string Namespace = "http://utopia.kawayi.moe";
-
     public static XmlSchemas GetXmlSchema<T>()
     {
         return GetXmlSchema(typeof(T));

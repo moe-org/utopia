@@ -4,29 +4,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Godot;
 using Utopia.Core;
 using Utopia.Core.Graphics;
 
 namespace Utopia.Godot.Graphics;
 
 /// <summary>
-/// A tile pack include a <see cref="Utopia.Core.Graphics.TileConfiguration"/> and its image.
+/// A tile set image file include a <see cref="Utopia.Core.Graphics.TileConfiguration"/>.
 /// </summary>
-public class TilePack
+public interface ITileSet
 {
-    public Guuid PackId { get; set; }
+    TileSetSource Source { get; }
 
-    public TileConfiguration Configuration { get; set; }
+    IEnumerable<Guuid> Tiles { get; }
 
-    public ReadOnlyMemory<byte> Image { get; set; }
-
-    public TilePack(TileConfiguration configuration, ReadOnlyMemory<byte> image)
-    {
-        Configuration = configuration;
-        Image = image;
-    }
+    bool TryGetTile(Guuid id, [NotNullWhen(true)] out int? index);
 }
 

@@ -7,13 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utopia.Core.Graphics;
 
-namespace Utopia.Godot.Graphics;
-
-public class TileReference(TilePack pack,ulong index)
+namespace Utopia.Core.Configuration.Xaml.Standard;
+public interface IRootObjectProvider
 {
-    public TilePack Pack { get; init; } = pack;
-
-    public ulong Index { get; init; } = index;
+    object RootObject { get; }
 }

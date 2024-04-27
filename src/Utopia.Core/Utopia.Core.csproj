@@ -47,6 +47,9 @@
     <ProjectReference Include="../XamlX/src/XamlX/XamlX.csproj">
       <Properties>XAMLX_INTERNAL=False</Properties>
     </ProjectReference>
+    <ProjectReference Include="../XamlX/src/XamlX.Runtime/XamlX.Runtime.csproj">
+      <Properties>XAMLX_INTERNAL=False</Properties>
+    </ProjectReference>
 
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

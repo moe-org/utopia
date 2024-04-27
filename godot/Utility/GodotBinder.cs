@@ -6,7 +6,7 @@ using System;
 using System.Reflection;
 using Godot;
 
-namespace Utopia.Godot;
+namespace Utopia.Godot.Utility;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class GodotNodeBindAttribute : Attribute

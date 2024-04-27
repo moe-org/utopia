@@ -7,12 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utopia.Core.Graphics;
 
-namespace Utopia.Godot.CorePlugin;
-public partial class Plugin : IPlugin
+namespace Utopia.Godot.Graphics;
+
+public readonly struct TileReference(int set, int tile)
 {
-    public event Action PluginDeactivated { add => throw new NotImplementedException(); remove => throw new NotImplementedException(); }
+    public int SetIndex { get; init; } = set;
 
-    public void Dispose() => throw new NotImplementedException();
+    public int TileIndex { get; init; } = tile;
 }
-

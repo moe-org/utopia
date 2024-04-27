@@ -21,7 +21,7 @@ namespace Utopia.Core.Net;
 /// <summary>
 /// A instance per connection.
 /// </summary>
-public class KestrelConnectionContext : Microsoft.AspNetCore.Connections.ConnectionContext,IAsyncDisposable
+public class KestrelConnectionContext : Microsoft.AspNetCore.Connections.ConnectionContext, IAsyncDisposable
 {
     public User? user { get; set; } = null;
 
@@ -43,7 +43,8 @@ public class KestrelConnectionContext : Microsoft.AspNetCore.Connections.Connect
 
     // implement interface
 
-    public override IDuplexPipe Transport {
+    public override IDuplexPipe Transport
+    {
         get
         {
             return Connection.Transport;
@@ -83,6 +84,7 @@ public class KestrelConnectionContext : Microsoft.AspNetCore.Connections.Connect
     public override async ValueTask DisposeAsync()
     {
         await Connection.DisposeAsync();
+        GC.SuppressFinalize(this);
     }
 
     ~KestrelConnectionContext()

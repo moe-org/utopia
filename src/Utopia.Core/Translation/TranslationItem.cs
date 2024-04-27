@@ -2,6 +2,7 @@
 
 using System.Collections.Frozen;
 using System.Xml.Serialization;
+using Utopia.Shared;
 
 #endregion
 
@@ -35,7 +36,7 @@ public sealed class TranslationItem
     public string Translated { get; set; } = string.Empty;
 }
 
-[XmlRoot(nameof(TranslationItems), Namespace = Xml.Namespace)]
+[XmlRoot(nameof(TranslationItems), Namespace = XmlNamespace.Utopia)]
 public class TranslationItems
 {
     public const string TranslationsElementName = "Translations";
