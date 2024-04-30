@@ -84,4 +84,9 @@ public sealed class Compiler : XamlILCompiler
 
         return GetCallbacks(parsedTypeBuilder.RuntimeType);
     }
+
+    public T CompileAndCreate<T>(string xaml, IServiceProvider? services = null)
+    {
+        return (T)Compile(xaml).create!(services);
+    }
 }

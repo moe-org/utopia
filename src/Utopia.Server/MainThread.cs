@@ -48,6 +48,8 @@ public sealed class MainThread
 
     private readonly TaskCompletionSource _startFinishSource = new();
 
+    public TaskCompletionSource GracefulStop { get; init; } = new();
+
     /// <summary>
     /// 启动任务。当此任务完成的时候代表服务器已经完成启动。但是此任务不指示服务器状态（包括停止，异常等）。
     /// </summary>
@@ -92,14 +94,29 @@ public sealed class MainThread
             if (e is { Cycle: LifeCycle.StartNetThread, Order: LifeCycleOrder.Current })
             {
                 Logger.LogInformation("start kestrel server");
-                Container.Resolve<KestrelServer>().StartAsync(new EmptyApplication(), new());
+                Container.Resolve<KestrelServer>().StartAsync(new EmptyApplication(), kestrelSource.Token).ContinueWith((t) =>
+                {
+                    Logger.LogInformation("kestrel started");
+                });
             }
         });
         EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
         {
             if (e is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.Current })
             {
-                Container.Resolve<KestrelServer>().StopAsync(new()).Wait();
+                Logger.LogInformation("stop kestrel server");
+                kestrelSource.Cancel();
+                Container.Resolve<KestrelServer>().StopAsync(kestrelSource.Token).Wait();
+                Logger.LogInformation("kestrel server stoped");
+            }
+            else if (e is { Cycle: LifeCycle.Crash, Order: LifeCycleOrder.Current })
+            {
+                Logger.LogInformation("stop kestrel server");
+                kestrelSource.Cancel();
+                var cancel = new CancellationTokenSource();
+                cancel.Cancel();
+                Container.Resolve<KestrelServer>().StopAsync(cancel.Token).Wait();
+                Logger.LogInformation("kestrel server stoped");
             }
         });
 
@@ -124,41 +141,7 @@ public sealed class MainThread
             _startFinishSource.SetResult();
 
             // stop when any of threads stop
-            var task = Task.WhenAll(LogicThread.Task);
-
-            // test
-            Thread.Sleep(200);
-
-            Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.Connect(new IPAddress(new byte[] { 127, 0, 0, 1 }), Option.Port);
-
-            // construct error packet
-            var errorPacket = new ErrorPacket()
-            {
-                ErrorMessage = "this is a test error packet"
-            };
-
-            var obj = (new MemoryPackPacketFormatter<ErrorPacket>()).ToPacket(ErrorPacket.PacketID, errorPacket);
-
-            var rawPacket = MemoryPackSerializer.Serialize<RawPacket>(new()
-            {
-                Data = new(obj),
-                ID = ErrorPacket.PacketID
-            });
-
-            var length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(rawPacket.Length));
-
-            MemoryStream buf = new();
-            buf.Write(length);
-            buf.Write(rawPacket);
-
-            socket.Send(buf.ToArray());
-
-            Thread.Sleep(1000);
-
-            socket.Close();
-            buf.Dispose();
-            socket.Dispose();
+            var task = Task.WhenAny(LogicThread.Task, GracefulStop.Task);
 
             task.Wait();
         }
@@ -172,7 +155,6 @@ public sealed class MainThread
         {
             Logger.LogInformation("stop");
             ChangeLifecycle(LifeCycle.Stop);
-            kestrelSource.Cancel();
         }
 
         return;

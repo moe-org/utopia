@@ -24,14 +24,13 @@ public class StandardConfiguration
         return new XamlLanguageTypeMappings(typeSystem)
         {
             XmlnsAttributes =
-                    [
-                        typeSystem.GetType("Utopia.Core.Configuration.Xaml.Standard.XmlnsDefinitionAttribute"),
-
-                    ],
+                [
+                    typeSystem.GetType("Utopia.Core.Configuration.Xaml.Standard.XmlnsDefinitionAttribute"),
+                ],
             ContentAttributes =
-                    [
-                        typeSystem.GetType("Utopia.Core.Configuration.Xaml.Standard.ContentAttribute")
-                    ],
+                [
+                    typeSystem.GetType("Utopia.Core.Configuration.Xaml.Standard.ContentAttribute")
+                ],
             TrimSurroundingWhitespaceAttributes =
                 [
                     typeSystem.GetType("Utopia.Core.Configuration.Xaml.Standard.TrimSurroundingWhitespaceAttribute")

@@ -74,7 +74,6 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             new(CultureInfo.CurrentCulture.TwoLetterISOLanguageName,
             RegionInfo.CurrentRegion.TwoLetterISORegionName);
 
-
         public int Port { get; set; } = DefaultPort;
 
         private Options()

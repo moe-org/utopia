@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
     <ProjectReference Include="../../src/Utopia.Server/Utopia.Server.csproj" />
   </ItemGroup>
 

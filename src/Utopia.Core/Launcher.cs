@@ -36,7 +36,7 @@ public abstract class Launcher<T>
 
     public IContainer? Container { get; protected set; } = null;
 
-    public IServiceProvider? ServiceProvider { get;protected set; }
+    public IServiceProvider? ServiceProvider { get; protected set; }
 
     public Task? MainTask { get; protected set; } = null;
 
@@ -77,7 +77,7 @@ public abstract class Launcher<T>
         _source.Fire(Container);
 
         // launch
-        Thread thread = new Thread(() =>
+        Thread thread = new(() =>
         {
             try
             {

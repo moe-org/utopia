@@ -12,6 +12,11 @@ using Utopia.Core;
 using Autofac;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using Xunit.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using Utopia.Core.Logging;
 
 namespace Utopia.Server.Test;
 
@@ -29,11 +34,43 @@ public class TestableLauncher : Launcher
 
     public readonly MockFileSystem FileSystem = new();
 
-    public TestableLauncher() : base(GetDefaultTestOption())
+    private readonly object _lock = new();
+
+    private readonly List<(string logger, string message)> logs = [];
+
+    public IEnumerable<(string logger, string message)> Logs
     {
-        // TODO: Register Tastable logger
-        // TODO: Register Testable things
+        get
+        {
+            lock (_lock)
+            {
+                return logs;
+            }
+        }
+    }
+
+    public TestableLauncher(Options options, ITestOutputHelper output) : base(options)
+    {
         Builder!.RegisterInstance<IFileSystem>(FileSystem).SingleInstance();
-        // Builder!.RegisterInstance<>
+        Builder!
+            .Register((_) =>
+        {
+            ServiceCollection services = new();
+            services.AddLogging((logging) =>
+                {
+                    logging.AddXUnit(output);
+                    logging.AddProvider(new LogManager.WarppedLoggerProvider((name, msg) =>
+                    {
+                        lock (_lock)
+                        {
+                            logs.Add((name, msg));
+                        }
+                    }));
+                }
+            );
+            return services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+        })
+            .As<ILoggerFactory>()
+            .SingleInstance();
     }
 }

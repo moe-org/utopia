@@ -2,11 +2,14 @@
 
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Mingmoe.Demystifier;
 using NLog;
 using NLog.Config;
+using NLog.Extensions.Logging;
 using NLog.Layouts;
 using NLog.Targets;
+using LogLevel = NLog.LogLevel;
 
 #endregion
 
@@ -100,7 +103,6 @@ public static class LogManager
     /// <summary>
     ///     初始化日志
     /// </summary>
-    /// <param name="enableRegexColored">是否启用正则表达式进行着色，这会导致性能降低，但是输出将会变得beautiful</param>
     public static void Init(LogOption option)
     {
         if (!option.EnableLoggingSystem)
@@ -132,6 +134,37 @@ public static class LogManager
     public static void Shutdown()
     {
         NLog.LogManager.Shutdown();
+    }
+
+    public class WarppedLoggerProvider(Action<string, string> callback) : ILoggerProvider
+    {
+        private class Logger(Action<string, string> callback, string name) : Microsoft.Extensions.Logging.ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+            {
+                return null;
+            }
+
+            public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+            {
+                callback(name, formatter(state, exception));
+            }
+        }
+
+        public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
+        {
+            return new Logger(callback, categoryName);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+        }
     }
 
     /// <summary>
@@ -194,6 +227,14 @@ public static class LogManager
                 ColorfulOutput = false,
                 EnableConsoleTraceOutput = true
             };
+        }
+    }
+
+    public class WarppedOutputTarget(Action<string> output) : Target
+    {
+        protected override void Write(LogEventInfo logEvent)
+        {
+            output(logEvent.FormattedMessage);
         }
     }
 
