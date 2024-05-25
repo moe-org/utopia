@@ -36,7 +36,7 @@ public class SimpleKestrelInternetTest(ITestOutputHelper output) : IntegrationTe
     [Fact]
     public void ErrorPacketTest()
     {
-        Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        using Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         socket.Connect(new IPAddress(new byte[] { 127, 0, 0, 1 }), Options.Port);
 
         // construct error packet
@@ -55,7 +55,7 @@ public class SimpleKestrelInternetTest(ITestOutputHelper output) : IntegrationTe
 
         var length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(rawPacket.Length));
 
-        MemoryStream buf = new();
+        using MemoryStream buf = new();
         buf.Write(length);
         buf.Write(rawPacket);
 
@@ -63,9 +63,11 @@ public class SimpleKestrelInternetTest(ITestOutputHelper output) : IntegrationTe
 
         Thread.Sleep(200);
 
-        socket.Close();
-        buf.Dispose();
-        socket.Dispose();
+        // should fail after send a error packet
+        Assert.Throws<SocketException>(() =>
+        {
+            socket.Send((byte[])[0]);
+        });
 
         StopAndWait();
 

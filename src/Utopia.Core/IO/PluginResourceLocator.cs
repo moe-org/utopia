@@ -1,7 +1,7 @@
 #region
 
-using System.IO.Abstractions;
 using Utopia.Core.Plugin;
+using Zio;
 
 #endregion
 
@@ -10,14 +10,12 @@ namespace Utopia.Core.IO;
 public class PluginResourceLocator(
     IResourceLocator resourceLocator,
     IPluginInformation information,
-    string rootDirectory,
-    IFileSystem fileSystem) : IPluginResourceLocator
+    string rootDirectory) : IPluginResourceLocator
 {
 
     public IResourceLocator GameRootResourceLocator { get; init; } = resourceLocator;
 
-    public string RootDirectory =>
-        fileSystem.Path.GetFullPath(rootDirectory);
+    public string RootDirectory => rootDirectory;
 
     public string GlobalConfigurationDirectory =>
         this.GameRootResourceLocator.GetConfigurationDirectoryOfPlugin(information);

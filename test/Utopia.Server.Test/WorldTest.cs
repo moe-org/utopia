@@ -12,6 +12,7 @@ using Moq;
 using Utopia.Core.Map;
 using Utopia.Server.Entity;
 using Utopia.Server.Map;
+using Zio.FileSystems;
 
 namespace Utopia.Test.Server;
 public class WorldTest
@@ -25,7 +26,7 @@ public class WorldTest
 
         World world = new(new Core.Guuid("Test", "Default"), 2, 2, generator.Object, ".")
         {
-            FileSystem = new MockFileSystem()
+            FileSystem = new MemoryFileSystem()
         };
 
         var yIndex = -world.YAreaNegativeCount * IArea.YSize;

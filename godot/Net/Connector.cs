@@ -9,16 +9,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Utopia.Core.Net;
 
 namespace Utopia.Godot.Net;
-
-public enum ConnectionType
-{
-    Tcp,
-    UdpKcp
-}
 
 /// <summary>
 /// 连接器
@@ -29,18 +24,21 @@ public class Connector : IDisposable
 
     private bool _disposed = false;
 
-    public void Connect(string address, int port, ConnectionType type)
+    public void Connect(string address)
     {
-        if (type == ConnectionType.Tcp)
-        {
-            var tcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        var uri = new Uri(address);
+        var addr = Dns.GetHostEntry(uri.Host);
+        var tcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        tcp.Connect(addr.AddressList[0], uri.Port);
 
-            tcp.Connect(address, port);
-        }
-        else
+        bool success = false;
+
+        if (!success)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("failed to add reference to the safe handle");
         }
+
+        Socket.SafeHandle.DangerousAddRef(ref success);
     }
 
     ~Connector()
@@ -75,15 +73,6 @@ public class Connector : IDisposable
     /// <exception cref="InvalidOperationException"></exception>
     public ulong GetHandle()
     {
-        bool success = false;
-
-        Socket.SafeHandle.DangerousAddRef(ref success);
-
-        if (!success)
-        {
-            throw new InvalidOperationException("failed to add reference to the safe handle");
-        }
-
         return BitConverter.ToUInt64(BitConverter.GetBytes(Socket.SafeHandle.DangerousGetHandle().ToInt64()));
     }
 }

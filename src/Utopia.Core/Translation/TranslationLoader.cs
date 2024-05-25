@@ -1,8 +1,8 @@
 #region
 
-using System.IO.Abstractions;
 using System.Xml;
 using System.Xml.Serialization;
+using Zio;
 
 #endregion
 
@@ -19,7 +19,7 @@ public static class TranslationLoader
 
         TranslationItems? declares = null;
 
-        using (var fs = fileSystem.File.OpenText(file))
+        using (var fs = fileSystem.OpenFile(file, FileMode.Open, FileAccess.Read))
         {
             declares = (TranslationItems?)serializer.Deserialize(fs)
                        ?? throw new XmlException("XmlSerializer.Deserialize return null");
@@ -39,9 +39,9 @@ public static class TranslationLoader
     public static Dictionary<string, string> LoadFromDirectory(string directory, IFileSystem fileSystem)
     {
         Dictionary<string, string> items = [];
-        foreach (var files in fileSystem.Directory.GetFiles(fileSystem.Path.GetFullPath(directory), "*", SearchOption.AllDirectories))
-            if (files.EndsWith(".xml"))
-                items.Union(LoadFromFile(files, fileSystem));
+        foreach (var files in fileSystem.EnumerateDirectoryEntries(new UPath(directory).ToAbsolute(), "*", SearchOption.AllDirectories))
+            if (files.Name.EndsWith(".xml", StringComparison.Ordinal))
+                items.Union(LoadFromFile(files.ToString(), fileSystem));
 
         return items;
     }

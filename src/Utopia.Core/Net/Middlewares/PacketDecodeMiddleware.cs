@@ -17,9 +17,9 @@ public class PacketDecodeMiddleware : IMiddleware
         {
             var parsed = context.Packetizer.Decode(packet.ID, packet.Data);
 
-            await context.PacketToDispatch.Writer.WriteAsync(new(packet.ID, parsed));
+            await context.PacketToDispatch.Writer.WriteAsync(new(packet.ID, parsed)).ConfigureAwait(false);
         }
 
-        await next(context);
+        await next(context).ConfigureAwait(false);
     }
 }

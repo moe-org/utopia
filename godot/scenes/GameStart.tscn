@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bpka4d3qp0ina"]
 
-[ext_resource type="Script" path="res://src/GameStart.cs" id="1_dwwbt"]
+[ext_resource type="Script" path="res://GameStart.cs" id="1_dwwbt"]
 
 [node name="GameStart" type="Node2D"]
 script = ExtResource("1_dwwbt")

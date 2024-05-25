@@ -20,12 +20,12 @@ public static class StreamUtility
     /// <returns></returns>
     public static async Task<int> ReadIntWithEndianConver(Stream stream)
     {
-        return IPAddress.NetworkToHostOrder(await ReadInt(stream));
+        return IPAddress.NetworkToHostOrder(await ReadInt(stream).ConfigureAwait(false));
     }
 
     public static async Task<int> ReadInt(Stream stream)
     {
-        var buffer = await Read(stream, 4);
+        var buffer = await Read(stream, 4).ConfigureAwait(false);
 
         return BitConverter.ToInt32(buffer);
     }
@@ -36,7 +36,7 @@ public static class StreamUtility
 
         var buffer = new byte[length];
         var ptr = 0;
-        while (ptr != length) ptr += await stream.ReadAsync(new ArraySegment<byte>(buffer, ptr, buffer.Length - ptr));
+        while (ptr != length) ptr += await stream.ReadAsync(new ArraySegment<byte>(buffer, ptr, buffer.Length - ptr)).ConfigureAwait(false);
 
         return buffer;
     }
@@ -51,8 +51,8 @@ public static class StreamUtility
     {
         Guard.IsNotNull(stream);
 
-        var l = await ReadIntWithEndianConver(stream);
-        return await Read(stream, l);
+        var l = await ReadIntWithEndianConver(stream).ConfigureAwait(false);
+        return await Read(stream, l).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -63,8 +63,8 @@ public static class StreamUtility
     {
         Guard.IsNotNull(stream);
 
-        var l = await ReadIntWithEndianConver(stream);
-        return Encoding.UTF8.GetString(await Read(stream, l));
+        var l = await ReadIntWithEndianConver(stream).ConfigureAwait(false);
+        return Encoding.UTF8.GetString(await Read(stream, l).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public static class StreamUtility
     /// </summary>
     public static async Task<Guuid> ReadGuuid(Stream stream)
     {
-        return Guuid.Parse(await ReadString(stream));
+        return Guuid.Parse(await ReadString(stream).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public static class StreamUtility
     {
         var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
 
-        await stream.WriteAsync(bytes);
+        await stream.WriteAsync(bytes).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -94,9 +94,9 @@ public static class StreamUtility
     /// </summary>
     public static async Task WriteStringWithLength(Stream stream, string value)
     {
-        await WriteInt(stream, value.Length);
+        await WriteInt(stream, value.Length).ConfigureAwait(false);
 
-        await stream.WriteAsync(Encoding.UTF8.GetBytes(value));
+        await stream.WriteAsync(Encoding.UTF8.GetBytes(value)).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -104,8 +104,8 @@ public static class StreamUtility
     /// </summary>
     public static async Task WriteDataWithLength(Stream stream, byte[] data)
     {
-        await WriteInt(stream, data.Length);
+        await WriteInt(stream, data.Length).ConfigureAwait(false);
 
-        await stream.WriteAsync(data);
+        await stream.WriteAsync(data).ConfigureAwait(false);
     }
 }

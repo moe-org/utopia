@@ -1,7 +1,7 @@
 #region
 
-using System.IO.Abstractions;
 using System.Security.Cryptography;
+using Zio;
 
 #endregion
 
@@ -13,7 +13,7 @@ public static class FileUtilities
     {
         using (var md5 = SHA256.Create())
         {
-            using (var stream = fileSystem.File.OpenRead(filename))
+            using (var stream = fileSystem.OpenFile(filename, FileMode.Open, FileAccess.Read))
             {
                 return md5.ComputeHash(stream);
             }

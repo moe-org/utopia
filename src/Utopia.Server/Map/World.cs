@@ -2,18 +2,17 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-using System.IO.Abstractions;
 using CommunityToolkit.Diagnostics;
 using Utopia.Core;
 using Utopia.Core.IO;
 using Utopia.Core.Map;
 using Utopia.Server.Logic;
+using Zio;
 
 namespace Utopia.Server.Map;
 
 public class World : IWorld
 {
-
     public required IFileSystem FileSystem { get; init; }
 
     private readonly Area[][] _areas;
@@ -145,6 +144,6 @@ public class World : IWorld
                 StreamUtility.WriteDataWithLength(stream, y.SaveAs()).Wait();
             }
         }
-        FileSystem.File.WriteAllBytes(FileSystem.Path.Join(FileSystem.Path.GetFullPath(_path), "data.bin"), stream.ToArray());
+        FileSystem.WriteAllBytes(UPath.Combine(_path, "data.bin"), stream.ToArray());
     }
 }

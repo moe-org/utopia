@@ -1,7 +1,7 @@
 #region
 
-using System.IO.Abstractions;
 using Utopia.Core.Plugin;
+using Zio;
 
 #endregion
 
@@ -74,21 +74,21 @@ public interface IResourceLocator
     /// </summary>
     void CreateIfNotExist()
     {
-        FileSystem.Directory.CreateDirectory(RootDirectory);
-        FileSystem.Directory.CreateDirectory(AssetsDirectory);
-        FileSystem.Directory.CreateDirectory(WorldsDirectory);
-        FileSystem.Directory.CreateDirectory(CharactersDirectory);
-        FileSystem.Directory.CreateDirectory(PluginsDirectory);
-        FileSystem.Directory.CreateDirectory(ConfigurationDirectory);
-        FileSystem.Directory.CreateDirectory(UtilitiesDirectory);
+        FileSystem.CreateDirectory(RootDirectory);
+        FileSystem.CreateDirectory(AssetsDirectory);
+        FileSystem.CreateDirectory(WorldsDirectory);
+        FileSystem.CreateDirectory(CharactersDirectory);
+        FileSystem.CreateDirectory(PluginsDirectory);
+        FileSystem.CreateDirectory(ConfigurationDirectory);
+        FileSystem.CreateDirectory(UtilitiesDirectory);
         if (ServerDirectory != null)
-            FileSystem.Directory.CreateDirectory(ServerDirectory);
+            FileSystem.CreateDirectory(ServerDirectory);
     }
 
     string GetConfigurationDirectoryOfPlugin(IPluginInformation plugin)
     {
-        var path = FileSystem.Path.Join(ConfigurationDirectory, plugin.Id.ToCsIdentifier());
-        FileSystem.Directory.CreateDirectory(path);
-        return path;
+        var path = UPath.Combine(ConfigurationDirectory, plugin.Id.ToCsIdentifier());
+        FileSystem.CreateDirectory(path);
+        return path.ToString();
     }
 }

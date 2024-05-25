@@ -20,10 +20,10 @@ csharp_preferred_modifier_order = public, private, protected, internal, file, ne
 csharp_style_var_elsewhere = false:none
 csharp_style_var_for_built_in_types = false:suggestion
 csharp_style_var_when_type_is_apparent = true:none
-dotnet_style_qualification_for_event = true:suggestion
-dotnet_style_qualification_for_field = true:suggestion
-dotnet_style_qualification_for_method = true:suggestion
-dotnet_style_qualification_for_property = true:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
 
 # ReSharper properties
 resharper_align_linq_query = true
@@ -59,6 +59,7 @@ dotnet_style_operator_placement_when_wrapping = beginning_of_line
 tab_width = 4
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # C# files
 [*.cs]
@@ -204,6 +205,7 @@ csharp_style_namespace_declarations = file_scoped:suggestion
 csharp_style_prefer_method_group_conversion = true:suggestion
 csharp_style_prefer_top_level_statements = false:error
 csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_prefer_readonly_struct = true:suggestion
 
 # Xml build files
 [*.builds]

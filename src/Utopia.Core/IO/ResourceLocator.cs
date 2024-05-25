@@ -1,5 +1,6 @@
 
-using System.IO.Abstractions;
+
+using Zio;
 
 namespace Utopia.Core.IO;
 
@@ -12,18 +13,18 @@ public abstract class ResourceLocator : IResourceLocator
 
     public abstract string RootDirectory { get; }
 
-    public string AssetsDirectory => FileSystem.Path.Join(RootDirectory, IResourceLocator.DefaultAssetsDirectoryName);
+    public string AssetsDirectory => UPath.Combine(RootDirectory, IResourceLocator.DefaultAssetsDirectoryName).ToString();
 
-    public string WorldsDirectory => FileSystem.Path.Join(RootDirectory, IResourceLocator.DefaultWorldsDirectoryName);
+    public string WorldsDirectory => UPath.Combine(RootDirectory, IResourceLocator.DefaultWorldsDirectoryName).ToString();
 
-    public string CharactersDirectory => FileSystem.Path.Join(RootDirectory, IResourceLocator.DefaultCharactersDirectoryName);
+    public string CharactersDirectory => UPath.Combine(RootDirectory, IResourceLocator.DefaultCharactersDirectoryName).ToString();
 
-    public string PluginsDirectory => FileSystem.Path.Join(RootDirectory, IResourceLocator.DefaultPluginsDirectoryName);
+    public string PluginsDirectory => UPath.Combine(RootDirectory, IResourceLocator.DefaultPluginsDirectoryName).ToString();
 
     public string ConfigurationDirectory =>
-        FileSystem.Path.Join(RootDirectory, IResourceLocator.DefaultConfigurationsDirectoryName);
+        UPath.Combine(RootDirectory, IResourceLocator.DefaultConfigurationsDirectoryName).ToString();
 
-    public string UtilitiesDirectory => FileSystem.Path.Join(RootDirectory, IResourceLocator.DefaultUtilitiesDirectoryName);
+    public string UtilitiesDirectory => UPath.Combine(RootDirectory, IResourceLocator.DefaultUtilitiesDirectoryName).ToString();
 
     public abstract string? ServerDirectory { get; }
 

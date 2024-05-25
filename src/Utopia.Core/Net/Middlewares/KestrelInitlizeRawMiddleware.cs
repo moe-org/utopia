@@ -34,6 +34,6 @@ public class KestrelInitlizeRawMiddleware
             context.ConnectionClosed.Register(connectionContainer.Dispose);
         }
 
-        await callback.Invoke((KestrelConnectionContext)context.Items[Key]!);
+        await callback.Invoke((KestrelConnectionContext)context.Items[Key]!).ConfigureAwait(false);
     }
 }

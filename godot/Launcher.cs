@@ -11,8 +11,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Godot;
+using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using NLog.Extensions.Logging;
 using Utopia.Core;
+using Utopia.Core.IO;
+using Utopia.Core.Plugin;
+using Utopia.Core.Translation;
+using Zio;
+using Zio.FileSystems;
 using static Utopia.Godot.Launcher;
 using IContainer = Autofac.IContainer;
 
@@ -31,6 +41,7 @@ public class Launcher(LaunchOptions options) : Launcher<LaunchOptions>(options)
     {
         public Node Root { get; set; } = node;
 
+        public ResourceLocator? ResourceLocator { get; set; }
     }
 
     protected override void _BuildDefaultContainer()
@@ -43,7 +54,57 @@ public class Launcher(LaunchOptions options) : Launcher<LaunchOptions>(options)
             .RegisterType<TimeProvider>()
             .SingleInstance()
             .AsSelf();
-
+        Builder!
+            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new PhysicalFileSystem()))
+            .SingleInstance()
+            .As<IResourceLocator>();
+        Builder
+            .RegisterType<NLogLoggerFactory>()
+            .SingleInstance()
+            .As<ILoggerFactory>();
+        Builder
+            .RegisterGeneric(typeof(Logger<>))
+            .As(typeof(ILogger<>))
+            .SingleInstance();
+        Builder
+            .RegisterInstance(new TaskFactory())
+            .AsSelf()
+            .SingleInstance();
+        Builder
+            .RegisterType<PluginLoader<IPlugin>>()
+            .SingleInstance()
+            .As<IPluginLoader<IPlugin>>();
+        Builder.
+            RegisterType<TranslationManager>()
+            .SingleInstance()
+            .As<ITranslationManager>();
+        Builder
+            .RegisterInstance(new PhysicalFileSystem())
+            .SingleInstance()
+            .As<IFileSystem>();
+        // kestrel server
+        Builder
+            .RegisterType<KestrelServerOptions>()
+            .SingleInstance();
+        Builder
+            .RegisterType<OptionsWrapper<KestrelServerOptions>>()
+            .As<IOptions<KestrelServerOptions>>()
+            .SingleInstance();
+        Builder
+            .RegisterType<SocketTransportOptions>()
+            .SingleInstance();
+        Builder
+            .RegisterType<OptionsWrapper<SocketTransportOptions>>()
+            .As<IOptions<SocketTransportOptions>>()
+            .SingleInstance();
+        Builder
+            .RegisterType<SocketTransportFactory>()
+            .SingleInstance()
+            .As<IConnectionListenerFactory>()
+            .As<IConnectionListenerFactorySelector>();
+        Builder
+            .RegisterType<KestrelServer>()
+            .SingleInstance();
     }
 
     protected override void _MainThread()

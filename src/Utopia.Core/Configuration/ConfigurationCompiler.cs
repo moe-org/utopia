@@ -23,8 +23,7 @@ using Utopia.Core.Security;
 using HarmonyLib;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
-using static Utopia.Core.Configuration.ConfigurationCompiler;
-using System.IO.Abstractions;
+using Zio;
 
 namespace Utopia.Core.Configuration;
 
@@ -42,7 +41,7 @@ public class ConfigurationCompiler
                 "System.Diagnostics"
            ];
 
-    public readonly List<MetadataReference> References = [];
+    public readonly IList<MetadataReference> References = [];
 
     private IFileSystem FileSystem { get; init; }
 
@@ -59,7 +58,7 @@ public class ConfigurationCompiler
                 continue;
             }
 
-            if (!fileSystem.File.Exists(assembly.Location))
+            if (!fileSystem.FileExists(assembly.Location))
             {
                 continue;
             }
@@ -107,7 +106,7 @@ public class ConfigurationCompiler
             .WithImports(DefaultNamespaces);
 
         var script = CSharpScript.Create(code, scriptOption, typeof(GlobalScriptObject<T>));
-        await script.RunAsync(new GlobalScriptObject<T>(option, filePath));
+        await script.RunAsync(new GlobalScriptObject<T>(option, filePath)).ConfigureAwait(false);
 
         return;
     }

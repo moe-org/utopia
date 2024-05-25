@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Utopia.Core.Configuration.Xaml.Standard;
 using Utopia.Shared;
 
-
 namespace Utopia.Core.Configuration.Xaml.Standard;
 
 /// <summary>

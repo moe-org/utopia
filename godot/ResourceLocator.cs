@@ -2,16 +2,21 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Utopia.Core.IO;
 using Zio;
 
-namespace Utopia.Server;
-
+namespace Utopia.Godot;
 public class ResourceLocator(string root, IFileSystem fileSystem) : Core.IO.ResourceLocator
 {
     public override IFileSystem FileSystem => fileSystem;
 
     public override string RootDirectory => ((UPath)root).ToAbsolute().ToString();
 
-    public override string? ServerDirectory => null;
+    public override string? ServerDirectory => IResourceLocator.DefaultServerDirectoryName;
 }
+

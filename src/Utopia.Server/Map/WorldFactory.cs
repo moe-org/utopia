@@ -2,8 +2,8 @@
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
-using System.IO.Abstractions;
 using Utopia.Core;
+using Zio;
 
 namespace Utopia.Server.Map;
 
@@ -28,7 +28,7 @@ public class WorldFactory : IWorldFactory
     }
 
     public IWorld GenerateNewWorld() => new World(new Guuid("Utopia", "NewWorld"), 4, 4, _generator,
-                                                  FileSystem.Path.Join(ResourceLocator.WorldsDirectory, "NewWorld"))
+                                                  UPath.Combine(ResourceLocator.WorldsDirectory, "NewWorld").ToString())
     {
         FileSystem = FileSystem
     };

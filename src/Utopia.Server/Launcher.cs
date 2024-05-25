@@ -5,7 +5,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO.Abstractions;
 using System.Net;
 using System.Reflection;
 using Autofac;
@@ -33,6 +32,8 @@ using Utopia.Server.Logic;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
 using Utopia.Server.Net.Handlers;
+using Zio;
+using Zio.FileSystems;
 using static Utopia.Server.Launcher;
 
 namespace Utopia.Server;
@@ -61,11 +62,6 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
         /// 文件系统
         /// </summary>
         public IResourceLocator? ResourceLocator { get; set; } = null;
-
-        /// <summary>
-        /// 数据库链接
-        /// </summary>
-        public NpgsqlDataSource? DatabaseSource { get; set; } = null;
 
         /// <summary>
         /// What language we want to use.
@@ -99,7 +95,7 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             .SingleInstance()
             .AsSelf();
         Builder
-            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new FileSystem()))
+            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new PhysicalFileSystem()))
             .SingleInstance()
             .As<IResourceLocator>();
         Builder
@@ -123,7 +119,7 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             .SingleInstance()
             .As<ITranslationManager>();
         Builder
-            .RegisterInstance(new FileSystem())
+            .RegisterInstance(new PhysicalFileSystem())
             .SingleInstance()
             .As<IFileSystem>();
         Builder

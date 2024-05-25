@@ -256,15 +256,11 @@ public static class LogManager
             try
             {
                 this._spin.Enter(ref taken);
-
                 StyledBuilder builder = new();
-
                 builder.Append("[");
                 builder.Append(new Style { ForeColor = Color.Cornflowerblue },
-                    logEvent.TimeStamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss:ffff"));
-                builder.Append("]");
-                builder.Append("[");
-
+                    logEvent.TimeStamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss:ffff", null));
+                builder.Append("][");
                 if (logEvent.Level == LogLevel.Trace)
                     builder.Append(new Style { ForeColor = Color.Gray }, "Trace");
                 else if (logEvent.Level == LogLevel.Debug)
@@ -279,34 +275,25 @@ public static class LogManager
                     builder.Append(
                         new Style { ForeColor = Color.Red, isUnderline = true, isItalic = true, isBold = true },
                         "Fatal");
-
-                builder.Append("]");
-                builder.Append("[");
+                builder.Append("][");
                 builder.Append(Thread.CurrentThread.Name ?? "<Null Thread Name>");
-                builder.Append("]");
-                builder.Append("[");
+                builder.Append("][");
                 builder.Append(logEvent.LoggerName ?? "<Null Logger Name>");
-                builder.Append("]");
-                builder.Append(":");
+                builder.Append("]:");
                 builder.Append(logEvent.FormattedMessage);
-
                 StringBuilder stringBuilder = new(logEvent.FormattedMessage.Length + 256);
                 stringBuilder.Append("Log:");
                 stringBuilder.Append(logEvent.FormattedMessage);
-
                 if (logEvent.Exception != null)
                 {
                     // logEvent.Exception();
                     builder.AppendLine();
                     builder.AppendColoredDemystified(logEvent.Exception, StyledBuilderOption.GlobalOption);
-
                     stringBuilder.Append("\n");
                     stringBuilder.Append("Exception");
                     stringBuilder.Append(logEvent.Exception.Demystify().ToString());
                 }
-
                 this.WriteLineAction?.Invoke(stringBuilder.ToString());
-
                 Console.Out.WriteLine(builder.ToString());
             }
             finally

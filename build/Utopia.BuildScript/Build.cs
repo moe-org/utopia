@@ -6,7 +6,10 @@ using Nuke.Common.Execution;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
+using Serilog;
+using Utopia.BuildScript;
 using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
@@ -19,26 +22,67 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main () => Execute<Build>(x => x.Compile);
+    public static int Main() => Execute<Build>(x => x.Release);
+
+    AbsolutePath GodotProjectPath = RootDirectory / "godot";
+
+    AbsolutePath ReleasePath = RootDirectory / "release";
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
+    [Parameter("The path to the godot engine")]
+    readonly string? Godot = Utility.FindProgram("godot", "mono", "stable");
+
     Target Clean => _ => _
-        .Before(Restore)
         .Executes(() =>
         {
+            DotNetTasks.DotNetClean();
         });
 
     Target Restore => _ => _
         .Executes(() =>
         {
+            DotNetTasks.DotNetRestore();
+            DotNetTasks.DotNetToolRestore();
         });
 
-    Target Compile => _ => _
+    Target UpdateVersion => _ => _
         .DependsOn(Restore)
         .Executes(() =>
         {
+            DotNetTasks.DotNet("dotnet-gitversion /updateassemblyinfo");
         });
 
+    Target CompileDotnet => _ => _
+        .DependsOn(Restore)
+        .Executes(() =>
+        {
+            DotNetTasks.DotNetBuild(config => config.SetConfiguration(Configuration.ToString()).SetNoRestore(true));
+        });
+
+    Target ReleaseGodot => _ => _
+        .DependsOn(Restore)
+        .Requires(() => Godot != null)
+        .Executes(() =>
+        {
+            Log.Information("Use Godot Engine from:{}", Godot);
+
+            ReleasePath.CreateOrCleanDirectory();
+            (ReleasePath / "windows").CreateOrCleanDirectory();
+            (ReleasePath / "linux").CreateOrCleanDirectory();
+
+            ProcessTasks.StartProcess(Godot, $"--headless --path \"{GodotProjectPath}\" --export-release \"Windows Desktop\" \"{ReleasePath / "windows/utopia.exe"}\" --quit").WaitForExit();
+            ProcessTasks.StartProcess(Godot, $"--headless --path \"{GodotProjectPath}\" --export-release \"Linux/X11\" \"{ReleasePath / "linux/utopia.x86_64"}\" --quit").WaitForExit();
+        });
+
+    Target Test => _ => _
+        .DependsOn(CompileDotnet)
+        .Executes(() =>
+        {
+            DotNetTasks.DotNetTest(config => config.SetNoBuild(true).SetNoRestore(true));
+        });
+
+    Target Release => _ => _
+        .DependsOn(UpdateVersion, CompileDotnet);
 }

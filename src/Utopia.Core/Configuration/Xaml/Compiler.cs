@@ -23,9 +23,9 @@ public sealed class Compiler : XamlILCompiler
 {
     public required Context Context { get; init; }
 
-    public required List<XamlDiagnostic> Diagnostics { get; init; }
+    public required IList<XamlDiagnostic> Diagnostics { get; init; }
 
-    public static Compiler CreateFrom(TransformerConfiguration configuration, List<XamlDiagnostic> diagnostics)
+    public static Compiler CreateFrom(TransformerConfiguration configuration, IList<XamlDiagnostic> diagnostics)
     {
         return new Compiler(configuration, new())
         {

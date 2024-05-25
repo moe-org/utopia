@@ -4,14 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using Utopia.Core.Configuration.Xaml.Standard;
+using Utopia.Shared;
 
-namespace Utopia.Shared;
-public static class XmlNamespace
-{
-    public const string Utopia = "http://utopia.kawayi.moe";
+[assembly: XmlnsDefinitionAttribute(XmlNamespace.UtopiaClient, "Utopia.Godot.Xaml")]
 
-    public const string UtopiaServer = $"{Utopia}/server";
-
-    public const string UtopiaClient = $"{Utopia}/client";
-}
