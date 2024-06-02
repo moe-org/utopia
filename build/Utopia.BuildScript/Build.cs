@@ -26,7 +26,15 @@ class Build : NukeBuild
 
     AbsolutePath GodotProjectPath = RootDirectory / "godot";
 
+    AbsolutePath SlnPath = RootDirectory / "src" / "Utopia.sln";
+
     AbsolutePath ReleasePath = RootDirectory / "release";
+
+    AbsolutePath CorePath = RootDirectory / "src" / "Utopia.Core" / "Utopia.Core.csproj";
+
+    AbsolutePath ClientPath = RootDirectory / "godot" / "Utopia.Godot.csproj";
+
+    AbsolutePath ServerPath = RootDirectory / "src" / "Utopia.Server" / "Utopia.Server.csproj";
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -58,7 +66,7 @@ class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            DotNetTasks.DotNetBuild(config => config.SetConfiguration(Configuration.ToString()).SetNoRestore(true));
+            DotNetTasks.DotNetBuild(config => config.SetProjectFile(SlnPath).SetConfiguration(Configuration.ToString()).SetNoRestore(true));
         });
 
     Target ReleaseGodot => _ => _
