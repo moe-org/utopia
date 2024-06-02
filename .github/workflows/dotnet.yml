@@ -26,6 +26,8 @@ jobs:
       shell: pwsh
       run: ./build.ps1 Restore
     - name: Build
+      shell: pwsh
       run: ./build.ps1 CompileDotnet
     - name: Test
+      shell: pwsh
       run: ./build.ps1 Test
