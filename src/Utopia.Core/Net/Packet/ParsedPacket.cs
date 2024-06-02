@@ -11,13 +11,12 @@ using System.Threading.Tasks;
 namespace Utopia.Core.Net.Packet;
 public sealed class ParsedPacket
 {
-    public Guuid ID { get;set; }
+    public Guuid ID { get; set; }
 
     public object Obj { get; set; }
 
     public ParsedPacket(Guuid ID, object Obj)
     {
-        ArgumentNullException.ThrowIfNull(ID);
         ArgumentNullException.ThrowIfNull(Obj);
         this.ID = ID;
         this.Obj = Obj;

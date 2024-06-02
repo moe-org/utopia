@@ -1,4 +1,5 @@
 using CommunityToolkit.Diagnostics;
+using Utopia.Core.Exceptions;
 using Utopia.Core.Net.Packet;
 
 namespace Utopia.Core.Net;
@@ -14,7 +15,7 @@ public interface IPacketHandler<T> : IPacketHandler where T : IWithPacketId
     {
         if (pakcetId != T.PacketID)
         {
-            throw new ArgumentException($"this formatter can only process `{T.PacketID}` packet but get a `{pakcetId}` packet");
+            throw new NoMatchGuuidException(T.PacketID, $"get a `{pakcetId}` packet which can not be processed");
         }
 
         Guard.IsAssignableToType<T>(packet);

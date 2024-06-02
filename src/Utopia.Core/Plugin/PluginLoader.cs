@@ -14,7 +14,7 @@ namespace Utopia.Core.Plugin;
 /// </summary>
 public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPluginBase
 {
-    private readonly WeakThreadSafeEventSource<ContainerBuilder> _event = new();
+    private readonly WeakThreadSafeEventSource<PluginActivateEvent> _event = new();
 
     protected readonly List<PluginT> _loadedPlugins = [];
 
@@ -34,7 +34,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
         }
     }
 
-    public event Action<ContainerBuilder> ActivatingPlugin
+    public event EventHandler<PluginActivateEvent> ActivatingPlugin
     {
         add => this._event.Register(value);
         remove => this._event.Unregister(value);
@@ -112,7 +112,7 @@ public class PluginLoader<PluginT> : IPluginLoader<PluginT> where PluginT : IPlu
 
             foreach (var method in methods) method.Invoke(null, [builder]);
 
-            this._event.Fire(builder, false);
+            this._event.Fire(builder, new PluginActivateEvent(builder), false);
         });
 
         try

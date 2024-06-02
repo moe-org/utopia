@@ -30,17 +30,18 @@ public interface ILogicThread
     /// <summary>
     /// 用于指示状态。
     /// </summary>
-    Task Task{ get; }
+    Task Task { get; }
 
     void Stop();
 }
 
 public class StandardLogicThread : ILogicThread
 {
-    public StandardLogicThread(IEventBus eventBus,ILogger<StandardLogicThread> logger)
+    public StandardLogicThread(IEventBus eventBus, ILogger<StandardLogicThread> logger)
     {
-        eventBus.Register<LifeCycleEvent<LifeCycle>>((cycle) =>
+        eventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, cycleEvent) =>
         {
+            var cycle = cycleEvent.Event;
             if (cycle is not { Cycle: LifeCycle.StartLogicThread, Order: LifeCycleOrder.Current })
             {
                 return;
@@ -49,8 +50,9 @@ public class StandardLogicThread : ILogicThread
             var logicT = new Thread(() =>
             {
                 // 注册关闭事件
-                eventBus.Register<LifeCycleEvent<LifeCycle>>((stopCycle) =>
+                eventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, stopCycleEvent) =>
                 {
+                    var stopCycle = stopCycleEvent.Event;
                     if (stopCycle is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.After })
                     {
                         Stop();
@@ -60,11 +62,12 @@ public class StandardLogicThread : ILogicThread
                 {
                     Run();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     logger.LogError(ex, "Logic Thread Crashed");
                 }
-                finally {
+                finally
+                {
                     Stop();
                 }
             })

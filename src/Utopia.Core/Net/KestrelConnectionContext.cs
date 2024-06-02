@@ -83,12 +83,7 @@ public class KestrelConnectionContext : Microsoft.AspNetCore.Connections.Connect
 
     public override async ValueTask DisposeAsync()
     {
-        await Connection.DisposeAsync();
+        await Connection.DisposeAsync().ConfigureAwait(false);
         GC.SuppressFinalize(this);
-    }
-
-    ~KestrelConnectionContext()
-    {
-        DisposeAsync().AsTask().Wait();
     }
 }

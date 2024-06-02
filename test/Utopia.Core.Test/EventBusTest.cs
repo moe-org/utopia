@@ -1,4 +1,4 @@
-﻿// This file is a part of the project Utopia(Or is a part of its subproject).
+// This file is a part of the project Utopia(Or is a part of its subproject).
 // Copyright 2020-2023 mingmoe(http://kawayi.moe)
 // The file was licensed under the AGPL 3.0-or-later license
 
@@ -12,18 +12,20 @@ public class EventBusTest
         EventBus bus = new();
         int toggle = 0;
 
-        bus.Register<int>(i =>
+        bus.Register<int>((s, i) =>
         {
-            Assert.Equal(1, i);
+            Assert.Same(this, s);
+            Assert.Equal(1, i.Event);
             toggle++;
         });
-        bus.EventFired += (i) =>
+        bus.EventFired += (s, i) =>
         {
-            Assert.Equal(1, i);
+            Assert.Same(this, s);
+            Assert.Equal(1, i.Event);
             toggle++;
         };
 
-        bus.Fire(1);
+        bus.Fire(this, 1);
 
         Assert.Equal(2, toggle);
     }
@@ -34,28 +36,21 @@ public class EventBusTest
         EventBus bus = new();
         int toggle = 0;
 
-        var lambda = (int i) =>
+        EventHandler<EventBusEvent<int>> lambda = (object? s, EventBusEvent<int> i) =>
         {
-            Assert.Equal(1, i);
+            Assert.Same(this, s);
+            Assert.Equal(1, i.Event);
             toggle++;
         };
 
         bus.Register(lambda);
-        bus.EventFired += (i) =>
+        bus.EventFired += (s, i) =>
         {
-            Assert.Equal(1, i);
-            toggle++;
+            lambda(s, (i as EventBusEvent<int>)!);
         };
         bus.Unregister(lambda);
 
-        bus.Fire(1);
+        bus.Fire(this, 1);
         Assert.Equal(1, toggle);
     }
-
-    [Fact]
-    public void ClearTest()
-    {
-
-    }
-
 }

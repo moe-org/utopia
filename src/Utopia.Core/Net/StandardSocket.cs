@@ -44,7 +44,7 @@ public class StandardSocket(Socket socket) : ISocket
     {
         if (!this.Alive) return;
 
-        await this._socket.SendAsync(data);
+        await this._socket.SendAsync(data).ConfigureAwait(false);
     }
 
     public async Task SocketMaintainer()
@@ -55,8 +55,8 @@ public class StandardSocket(Socket socket) : ISocket
 
             // try ping
             var result = await Utilities.TryPing((this._socket.RemoteEndPoint as IPEndPoint)?.Address
-                                                 ?? throw new NotImplementedException(
-                                                     "not implement for no IpEndPoint"));
+                                                 ?? throw new NotSupportedException(
+                                                     "not implement for no IpEndPoint")).ConfigureAwait(false);
 
             if (result == null)
             {
@@ -71,7 +71,7 @@ public class StandardSocket(Socket socket) : ISocket
             if (part1 && part2) this.Alive = false;
 
             // ping per five seconds check once
-            await Task.Delay(1000 * 5);
+            await Task.Delay(1000 * 5).ConfigureAwait(false);
         }
     }
 

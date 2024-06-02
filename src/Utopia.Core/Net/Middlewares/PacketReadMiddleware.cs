@@ -32,7 +32,7 @@ public class PacketReadMiddleware : IMiddleware
             // read packet length
             int length;
             {
-                var result = await input.ReadAtLeastAsync(sizeof(int), token);
+                var result = await input.ReadAtLeastAsync(sizeof(int), token).ConfigureAwait(false);
 
                 if (result.IsCanceled || result.IsCompleted)
                 {
@@ -51,7 +51,7 @@ public class PacketReadMiddleware : IMiddleware
             // read packet
             RawPacket? packet;
             {
-                var result = await input.ReadAtLeastAsync(length, token);
+                var result = await input.ReadAtLeastAsync(length, token).ConfigureAwait(false);
 
                 if (result.IsCanceled || result.IsCompleted)
                 {
@@ -71,13 +71,13 @@ public class PacketReadMiddleware : IMiddleware
             }
 
             // write packet
-            await context.PacketToParse.Writer.WriteAsync(packet, token);
+            await context.PacketToParse.Writer.WriteAsync(packet, token).ConfigureAwait(false);
 
             // process the packet
-            await next.Invoke(context);
+            await next.Invoke(context).ConfigureAwait(false);
         }
 
         // process the packet
-        await next.Invoke(context);
+        await next.Invoke(context).ConfigureAwait(false);
     }
 }

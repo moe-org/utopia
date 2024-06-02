@@ -79,9 +79,9 @@ public sealed class MainThread
         Thread.CurrentThread.Name = "Server Main Thread";
         CancellationTokenSource kestrelSource = new();
 
-        EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
+        EventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, e) =>
         {
-            if (e is { Cycle: LifeCycle.InitializedSystem, Order: LifeCycleOrder.Current })
+            if (e.Event is { Cycle: LifeCycle.InitializedSystem, Order: LifeCycleOrder.Current })
             {
                 _InitLoggingSystem();
                 Logger.LogInformation("log system initialized");
@@ -89,9 +89,9 @@ public sealed class MainThread
                 Logger.LogInformation("create directory for resources");
             }
         });
-        EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
+        EventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, e) =>
         {
-            if (e is { Cycle: LifeCycle.StartNetThread, Order: LifeCycleOrder.Current })
+            if (e.Event is { Cycle: LifeCycle.StartNetThread, Order: LifeCycleOrder.Current })
             {
                 Logger.LogInformation("start kestrel server");
                 Container.Resolve<KestrelServer>().StartAsync(new EmptyApplication(), kestrelSource.Token).ContinueWith((t) =>
@@ -100,16 +100,16 @@ public sealed class MainThread
                 });
             }
         });
-        EventBus.Register<LifeCycleEvent<LifeCycle>>(e =>
+        EventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, e) =>
         {
-            if (e is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.Current })
+            if (e.Event is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.Current })
             {
                 Logger.LogInformation("stop kestrel server");
                 kestrelSource.Cancel();
                 Container.Resolve<KestrelServer>().StopAsync(kestrelSource.Token).Wait();
                 Logger.LogInformation("kestrel server stoped");
             }
-            else if (e is { Cycle: LifeCycle.Crash, Order: LifeCycleOrder.Current })
+            else if (e.Event is { Cycle: LifeCycle.Crash, Order: LifeCycleOrder.Current })
             {
                 Logger.LogInformation("stop kestrel server");
                 kestrelSource.Cancel();
@@ -161,9 +161,10 @@ public sealed class MainThread
 
         void ChangeLifecycle(LifeCycle lifeCycle)
         {
-            LifeCycleEvent<LifeCycle>.EnterCycle(
+            LifeCycleEventArgs<LifeCycle>.EnterCycle(
                                                  lifeCycle,
                                                  Logger,
+                                                 this,
                                                  EventBus,
                                                  () =>
                                                  {

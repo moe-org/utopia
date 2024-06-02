@@ -30,7 +30,7 @@ public static class Utilities
                 Ping pingTest = new();
                 var reply = await pingTest.SendPingAsync(
                     address,
-                    new TimeSpan(0, 0, timeoutSeconds));
+                    new TimeSpan(0, 0, timeoutSeconds)).ConfigureAwait(false);
 
                 if (reply.Status != IPStatus.Success) continue;
 
@@ -77,19 +77,19 @@ public static class Utilities
             {
                 await middleware.InvokeAsync((KestrelConnectionContext)context.Items[KestrelInitlizeRawMiddleware.Key]!, async (nContext) =>
                 {
-                    await next(nContext.Connection);
-                });
+                    await next(nContext.Connection).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
             else if (context is KestrelConnectionContext uContext)
             {
                 await middleware.InvokeAsync(uContext, async (nContext) =>
                 {
-                    await next(nContext.Connection);
-                });
+                    await next(nContext.Connection).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
             else
             {
-                throw new NotImplementedException($"The context({context.GetType().FullName}) is not KestrelConnectionContext");
+                throw new NotSupportedException($"The context({context.GetType().FullName}) is not KestrelConnectionContext");
             }
         });
 
@@ -107,6 +107,6 @@ public static class Utilities
 
     public static async Task ReportError(this ConnectionContext ctx, string msg)
     {
-        await ctx.PacketWriter.WriteAsync(new ParsedPacket(ErrorPacket.PacketID, new ErrorPacket() { ErrorMessage = msg }), ctx.ConnectionClosed);
+        await ctx.PacketWriter.WriteAsync(new ParsedPacket(ErrorPacket.PacketID, new ErrorPacket() { ErrorMessage = msg }), ctx.ConnectionClosed).ConfigureAwait(false);
     }
 }

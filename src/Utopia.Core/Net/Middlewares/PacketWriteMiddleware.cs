@@ -27,11 +27,11 @@ public class PacketWriteMiddleware : IMiddleware
             // note: covert native endian to network
             var length = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(encodedPacket.Length));
 
-            await context.Transport.Output.WriteAsync(length);
-            await context.Transport.Output.WriteAsync(encodedPacket);
+            await context.Transport.Output.WriteAsync(length).ConfigureAwait(false);
+            await context.Transport.Output.WriteAsync(encodedPacket).ConfigureAwait(false);
         }
 
-        await next(context);
+        await next(context).ConfigureAwait(false);
     }
 }
 

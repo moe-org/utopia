@@ -33,12 +33,12 @@ public sealed class LanguageID
         ArgumentNullException.ThrowIfNull(location);
 
         if (language.Length != 2 || location.Length != 2)
-            throw new ArgumentException("the length of language or location is not 2");
+            throw new FormatException("the length of language or location is not 2");
         if (!(language.All(char.IsLetter) && location.All(char.IsLetter)))
-            throw new ArgumentException("the language or location is not all letter");
+            throw new FormatException("the language or location is not all letter");
 
-        this.Language = language.ToLower();
-        this.Location = location.ToLower();
+        this.Language = language.ToLowerInvariant();
+        this.Location = location.ToLowerInvariant();
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public sealed class LanguageID
     public static LanguageID Parse(string id)
     {
         return !TryParse(id, out var identifence)
-            ? throw new ArgumentException("the format of TranslateIdentifence is invalid")
+            ? throw new FormatException("the format of TranslateIdentifence is invalid")
             : identifence!;
     }
 
@@ -89,7 +89,7 @@ public sealed class LanguageID
 
     public override int GetHashCode()
     {
-        return this.ToString().GetHashCode();
+        return StringComparer.Ordinal.GetHashCode(ToString());
     }
 
     public override bool Equals(object? obj)
@@ -98,7 +98,7 @@ public sealed class LanguageID
         if (obj.GetType().IsAssignableFrom(this.GetType()))
         {
             var o = (LanguageID)obj;
-            return o.Language == this.Language && o.Location == this.Location;
+            return o.Language.Equals(this.Language) && o.Location.Equals(this.Location);
         }
 
         return false;

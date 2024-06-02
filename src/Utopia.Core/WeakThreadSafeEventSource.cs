@@ -4,9 +4,9 @@ namespace Utopia.Core;
 ///     线程安全的,使用弱引用的事件源.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public struct WeakThreadSafeEventSource<T>()
+public struct WeakThreadSafeEventSource<T>() where T : EventArgs
 {
-    private readonly List<WeakReference<Action<T>>> _handlers = [];
+    private readonly List<WeakReference<EventHandler<T>>> _handlers = [];
 
     private SpinLock _spinLock = new();
 
@@ -25,8 +25,9 @@ public struct WeakThreadSafeEventSource<T>()
         }
     }
 
-    public IEnumerable<Exception> Fire(T @event, bool ignoreError = false)
+    public IEnumerable<Exception> Fire(object? source, T @event, bool ignoreError = false)
     {
+        ArgumentNullException.ThrowIfNull(source);
         var taken = false;
         try
         {
@@ -40,7 +41,7 @@ public struct WeakThreadSafeEventSource<T>()
 
                     if (handler.TryGetTarget(out var target))
                     {
-                        target.Invoke(@event);
+                        target.Invoke(source, @event);
                         continue;
                     }
 
@@ -62,14 +63,14 @@ public struct WeakThreadSafeEventSource<T>()
         }
     }
 
-    public void Register(Action<T> handler)
+    public void Register(EventHandler<T> handler)
     {
         var taken = false;
         try
         {
             this._spinLock.Enter(ref taken);
 
-            this._handlers.Add(new WeakReference<Action<T>>(handler));
+            this._handlers.Add(new WeakReference<EventHandler<T>>(handler));
         }
         finally
         {
@@ -77,7 +78,7 @@ public struct WeakThreadSafeEventSource<T>()
         }
     }
 
-    public void Unregister(Action<T> handler)
+    public void Unregister(EventHandler<T> handler)
     {
         var taken = false;
         try
@@ -116,7 +117,7 @@ public struct WeakThreadSafeEventSource<T>()
 /// </summary>
 public struct WeakThreadSafeEventSource()
 {
-    private readonly List<WeakReference<Action>> _handlers = [];
+    private readonly List<WeakReference<EventHandler>> _handlers = [];
 
     private SpinLock _spinLock = new();
 
@@ -135,8 +136,9 @@ public struct WeakThreadSafeEventSource()
         }
     }
 
-    public IEnumerable<Exception> Fire(bool ignoreError = false)
+    public IEnumerable<Exception> Fire(object source, bool ignoreError = false)
     {
+        ArgumentNullException.ThrowIfNull(source);
         var taken = false;
         try
         {
@@ -150,7 +152,7 @@ public struct WeakThreadSafeEventSource()
 
                     if (handler.TryGetTarget(out var target))
                     {
-                        target.Invoke();
+                        target.Invoke(source, EventArgs.Empty);
                         continue;
                     }
 
@@ -172,14 +174,14 @@ public struct WeakThreadSafeEventSource()
         }
     }
 
-    public void Register(Action handler)
+    public void Register(EventHandler handler)
     {
         var taken = false;
         try
         {
             this._spinLock.Enter(ref taken);
 
-            this._handlers.Add(new WeakReference<Action>(handler));
+            this._handlers.Add(new WeakReference<EventHandler>(handler));
         }
         finally
         {
@@ -187,7 +189,7 @@ public struct WeakThreadSafeEventSource()
         }
     }
 
-    public void Unregister(Action handler)
+    public void Unregister(EventHandler handler)
     {
         var taken = false;
         try

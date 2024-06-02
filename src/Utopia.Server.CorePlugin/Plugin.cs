@@ -12,12 +12,10 @@ public partial class Plugin : IPlugin
 
     private WeakThreadSafeEventSource _source = new();
 
-    public event Action PluginDeactivated
+    public event EventHandler PluginDeactivated
     {
         add
         {
-            _ = GuuidDeclarations.Test;
-            _ = this.Author;
             _source.Register(value);
         }
         remove
@@ -46,7 +44,7 @@ public partial class Plugin : IPlugin
 
         if (disposing)
         {
-            _source.Fire();
+            _source.Fire(this);
         }
 
         _disposed = true;

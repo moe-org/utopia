@@ -79,7 +79,7 @@ public readonly partial struct Guuid : IEnumerable<string>
     [MemoryPackConstructor]
     public Guuid(string root, params string[] nodes)
     {
-        if (!CheckGuuid(root, nodes)) throw new ArgumentException("the guuid name is illegal");
+        if (!CheckGuuid(root, nodes)) throw new FormatException("the guuid name is illegal");
 
         this.Root = root;
         this.Nodes = nodes;
@@ -91,12 +91,12 @@ public readonly partial struct Guuid : IEnumerable<string>
 
     public static bool operator ==(Guuid c1, Guuid c2)
     {
-        return c1.Root == c2.Root && c1.Nodes.SequenceEqual(c2.Nodes);
+        return c1.Root.Equals(c2.Root) && c1.Nodes.SequenceEqual(c2.Nodes, StringComparer.InvariantCulture);
     }
 
     public static bool operator !=(Guuid c1, Guuid c2)
     {
-        return c1.Root != c2.Root || !c1.Nodes.SequenceEqual(c2.Nodes);
+        return (!c1.Root.Equals(c2.Root)) || !c1.Nodes.SequenceEqual(c2.Nodes, StringComparer.InvariantCulture);
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public readonly partial struct Guuid : IEnumerable<string>
         [NotNullWhen(true)] out Guuid? result,
         [NotNullWhen(false)] out string? errorMessage)
     {
-        if (string.IsNullOrEmpty(s)) throw new ArgumentException("param is empty or null");
+        if (string.IsNullOrEmpty(s)) throw new FormatException("param is empty or null");
         result = null;
         errorMessage = null;
 
@@ -248,7 +248,7 @@ public readonly partial struct Guuid : IEnumerable<string>
         node.MoveNext();
         foreach (var item in this)
         {
-            if (node.Current != item) return false;
+            if (!node.Current.Equals(item)) return false;
 
             // the child is short than(or equal in length) father!!!
             if (!node.MoveNext())

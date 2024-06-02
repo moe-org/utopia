@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using MemoryPack;
+using Utopia.Core.Exceptions;
 using Utopia.Core.Net.Packet;
 
 namespace Utopia.Core.Net;
@@ -18,9 +19,9 @@ public class MemoryPackPacketFormatter<T> : IPacketFormatter where T : IWithPack
 {
     public object GetValue(Guuid packetId, ReadOnlySequence<byte> packet)
     {
-        if(packetId != T.PacketID)
+        if (packetId != T.PacketID)
         {
-            throw new ArgumentException($"this formatter can only process `{T.PacketID}` packet but get a `{packetId}` packet");
+            throw new NoMatchGuuidException(T.PacketID, $"get a `{packetId}` packet that can not be formatted");
         }
 
         var obj = MemoryPackSerializer.Deserialize<T>(packet);
@@ -30,9 +31,9 @@ public class MemoryPackPacketFormatter<T> : IPacketFormatter where T : IWithPack
 
     public Memory<byte> ToPacket(Guuid packetId, object value)
     {
-        if(packetId != T.PacketID)
+        if (packetId != T.PacketID)
         {
-            throw new ArgumentException($"this formatter can only process `{T.PacketID}` packet but get a `{packetId}` packet");
+            throw new NoMatchGuuidException(T.PacketID, $"get a `{packetId}` packet that can not be formatted");
         }
 
         Guard.IsNotNull(value);

@@ -13,7 +13,7 @@ namespace Utopia.Core;
 public enum LifeCycleOrder
 {
     /// <summary>
-    /// Before enter next lifecycle. The <see cref="LifeCycleEvent{CycleT}.Cycle"/> hasn't changed.
+    /// Before enter next lifecycle. The <see cref="LifeCycleEventArgs{CycleT}.Cycle"/> hasn't changed.
     /// </summary>
     Before,
     Current,
@@ -23,13 +23,13 @@ public enum LifeCycleOrder
     After,
 }
 
-public class LifeCycleEvent<TCycle>
+public class LifeCycleEventArgs<TCycle> : EventArgs
 {
     public LifeCycleOrder Order { get; }
 
     public TCycle Cycle { get; }
 
-    public LifeCycleEvent(LifeCycleOrder order, TCycle cycle)
+    public LifeCycleEventArgs(LifeCycleOrder order, TCycle cycle)
     {
         Cycle = cycle;
         Order = order;
@@ -38,29 +38,29 @@ public class LifeCycleEvent<TCycle>
     /// <summary>
     /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
-    public static void EnterCycle(TCycle cycle, ILogger logger, Action<LifeCycleEvent<TCycle>> fireEventAction, Action switchAction)
+    public static void EnterCycle(TCycle cycle, ILogger logger, Action<LifeCycleEventArgs<TCycle>> fireEventAction, Action switchAction)
     {
         ArgumentNullException.ThrowIfNull(cycle);
         logger.LogInformation("enter pre-{lifecycle} lifecycle", cycle);
-        fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.Before, cycle));
+        fireEventAction.Invoke(new LifeCycleEventArgs<TCycle>(LifeCycleOrder.Before, cycle));
         logger.LogInformation("enter {lifecycle} lifecycle", cycle);
         switchAction.Invoke();
-        fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.Current, cycle));
+        fireEventAction.Invoke(new LifeCycleEventArgs<TCycle>(LifeCycleOrder.Current, cycle));
         logger.LogInformation("enter post-{lifecycle} lifecycle", cycle);
-        fireEventAction.Invoke(new LifeCycleEvent<TCycle>(LifeCycleOrder.After, cycle));
+        fireEventAction.Invoke(new LifeCycleEventArgs<TCycle>(LifeCycleOrder.After, cycle));
     }
 
     /// <summary>
     /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
-    public static void EnterCycle(TCycle cycle, ILogger logger, WeakThreadSafeEventSource<LifeCycleEvent<TCycle>> bus, Action switchAction)
+    public static void EnterCycle(TCycle cycle, ILogger logger, object source, WeakThreadSafeEventSource<LifeCycleEventArgs<TCycle>> bus, Action switchAction)
     {
         EnterCycle(
             cycle,
             logger,
             (e) =>
             {
-                bus.Fire(e, false);
+                bus.Fire(source, e);
             },
             switchAction);
     }
@@ -68,14 +68,14 @@ public class LifeCycleEvent<TCycle>
     /// <summary>
     /// About how we will fire the event,see <see cref="LifeCycleOrder"/>
     /// </summary>
-    public static void EnterCycle(TCycle cycle, ILogger logger, IEventBus bus, Action switchAction)
+    public static void EnterCycle(TCycle cycle, ILogger logger, object source, IEventBus bus, Action switchAction)
     {
         EnterCycle(
             cycle,
             logger,
             (e) =>
             {
-                bus.Fire(e);
+                bus.Fire(source, e);
             },
             switchAction);
     }

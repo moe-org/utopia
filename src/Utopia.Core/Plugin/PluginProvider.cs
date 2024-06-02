@@ -15,7 +15,6 @@ namespace Utopia.Core.Plugin;
 /// </summary>
 public class StandardPluginProvider : IPluginProvider
 {
-
     public required IFileSystem FileSystem { get; init; }
 
     /// <summary>

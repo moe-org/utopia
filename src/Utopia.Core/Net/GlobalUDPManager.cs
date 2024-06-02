@@ -30,7 +30,7 @@ public class GlobalUDPManager
 
     public GlobalUDPManager()
     {
-        Task.Run(this.MapMaintainer);
+        _ = Task.Run(this.MapMaintainer);
     }
 
     public required ILogger<GlobalUDPManager> Logger { private get; init; }
@@ -101,7 +101,7 @@ public class GlobalUDPManager
                     this.RemoveSocket(toRemove);
                 }
 
-                await Task.Delay(50);
+                await Task.Delay(50).ConfigureAwait(false);
                 await Task.Yield();
             }
             catch (Exception e)
@@ -125,7 +125,7 @@ public class GlobalUDPManager
                 try
                 {
                     using var buffer = MemoryPool<byte>.Shared.Rent(MaxReceiveBufferSize);
-                    var result = await udp.ReceiveFromAsync(buffer.Memory, allAddress);
+                    var result = await udp.ReceiveFromAsync(buffer.Memory, allAddress).ConfigureAwait(false);
 
                     var remote = ToStandardPoint(result.RemoteEndPoint);
 
@@ -137,7 +137,7 @@ public class GlobalUDPManager
                         buffer.Memory.Slice(0, result.ReceivedBytes).CopyTo(memory);
 
                         writer.Advance(result.ReceivedBytes);
-                        await writer.FlushAsync();
+                        await writer.FlushAsync().ConfigureAwait(false);
                     }
 
                     await Task.Yield();
@@ -163,7 +163,7 @@ public class GlobalUDPManager
 
     private static string ToStandardString(IPEndPoint endPoint)
     {
-        return string.Format("{0}-{1}", endPoint.Address.ToString(), endPoint.Port).ToLowerInvariant().Trim();
+        return string.Format(null, "{0}-{1}", endPoint.Address.ToString(), endPoint.Port).ToLowerInvariant().Trim();
     }
 
     public void StartUDPListenFor(UDPSocket socket)
@@ -173,11 +173,11 @@ public class GlobalUDPManager
         this.AddSocket(socket);
 
         var localAddress = ToStandardPoint(socket.LocalAddress)
-            ?? throw new ArgumentException("The UDP Socket must have a local address");
+            ?? throw new FormatException("The UDP Socket must have a local address");
 
         _ = this._maintainerStarted.GetOrAdd(ToStandardString(localAddress), local =>
         {
-            Task.Run(() => this.UdpMaintainer(localAddress));
+            _ = Task.Run(() => this.UdpMaintainer(localAddress));
             return true;
         });
     }

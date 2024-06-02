@@ -23,7 +23,7 @@ public class PacketDispatchMiddleware : IMiddleware
     {
         while (context.PacketToDispatch.Reader.TryRead(out var packet))
         {
-            var result = await context.Dispatcher.DispatchPacket(new(context), packet.ID, packet.Obj);
+            var result = await context.Dispatcher.DispatchPacket(new(context), packet.ID, packet.Obj).ConfigureAwait(false);
 
             if (!result)
             {
@@ -31,6 +31,6 @@ public class PacketDispatchMiddleware : IMiddleware
             }
         }
 
-        await next(context);
+        await next(context).ConfigureAwait(false);
     }
 }

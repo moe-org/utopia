@@ -14,13 +14,19 @@ using Microsoft.Extensions.DependencyInjection;
 using IContainer = Autofac.IContainer;
 
 namespace Utopia.Core;
+
+public class LaunchEventArgs : EventArgs
+{
+    public required IContainer Container { get; set; }
+}
+
 public abstract class Launcher<T>
 {
     public T Option { get; init; }
 
-    protected WeakThreadSafeEventSource<IContainer> _source = new();
+    protected WeakThreadSafeEventSource<LaunchEventArgs> _source = new();
 
-    public event Action<IContainer> LaunchEvent
+    public event EventHandler<LaunchEventArgs> LaunchEvent
     {
         add
         {
@@ -49,7 +55,11 @@ public abstract class Launcher<T>
     public Launcher(T option)
     {
         Option = option;
-        _BuildDefaultContainer();
+    }
+
+    public void InjectDefaultDependences()
+    {
+        this._BuildDefaultContainer();
     }
 
     /// <summary>
@@ -74,7 +84,7 @@ public abstract class Launcher<T>
         Container = Builder!.Build();
         ServiceProvider = new AutofacServiceProvider(Container);
         Builder = null;
-        _source.Fire(Container);
+        _source.Fire(this, new LaunchEventArgs { Container = Container });
 
         // launch
         Thread thread = new(() =>

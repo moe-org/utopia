@@ -17,9 +17,9 @@ public class PacketEncodeMiddleware : IMiddleware
         {
             var parsed = context.Packetizer.Encode(packet.ID, packet.Obj);
 
-            await context.PacketToWrite.Writer.WriteAsync(new(packet.ID, new(parsed)));
+            await context.PacketToWrite.Writer.WriteAsync(new(packet.ID, new(parsed))).ConfigureAwait(false);
         }
 
-        await next(context);
+        await next(context).ConfigureAwait(false);
     }
 }

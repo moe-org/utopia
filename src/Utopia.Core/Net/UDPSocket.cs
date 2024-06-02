@@ -93,7 +93,7 @@ public class UDPSocket : ISocket
         if (!this.Alive) return;
 
         var index = 0;
-        while (index != data.Length && this.Alive) index += await this._udpSocket.SendToAsync(data, this.Remote);
+        while (index != data.Length && this.Alive) index += await this._udpSocket.SendToAsync(data, this.Remote).ConfigureAwait(false);
     }
 
     protected virtual void Dispose(bool disposing)

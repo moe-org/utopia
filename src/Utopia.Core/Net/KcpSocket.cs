@@ -62,7 +62,7 @@ public sealed class KcpSocket : ISocket, IKcpCallback
     {
         using var b = buffer;
         // ensure that only this method call socket.write
-        await this._socket.Write(b.Memory.Slice(0, avalidLength));
+        await this._socket.Write(b.Memory.Slice(0, avalidLength)).ConfigureAwait(false);
     }
 
     public bool Alive { get; private set; } = true;
@@ -138,7 +138,6 @@ public sealed class KcpSocket : ISocket, IKcpCallback
                 if (!this.Alive) return;
 
                 var current = this.Current;
-
                 DateTimeOffset next;
 
                 // update is not thread-safe
@@ -161,10 +160,10 @@ public sealed class KcpSocket : ISocket, IKcpCallback
                     if (token.IsCancellationRequested || !this.Alive) return;
 
                     await Task.Yield();
-                    await UpdateData();
+                    await UpdateData().ConfigureAwait(false);
                 }
 
-                await UpdateData();
+                await UpdateData().ConfigureAwait(false);
             }
         }
         finally
@@ -181,7 +180,7 @@ public sealed class KcpSocket : ISocket, IKcpCallback
             {
                 // read is not thread-safe
                 // but we ensure that only we are call that
-                var length = await this._socket.Read(rent);
+                var length = await this._socket.Read(rent).ConfigureAwait(false);
 
                 // while input is thread-safe
                 this._kcp.Input(new Span<byte>(rent, 0, length));

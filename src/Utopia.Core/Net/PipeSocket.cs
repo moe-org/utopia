@@ -61,8 +61,8 @@ public class PipeSocket(PipeReader reader, PipeWriter writer) : ISocket
     {
         if (!this.Alive) return;
 
-        await this._writer.WriteAsync(data);
-        await this._writer.FlushAsync();
+        await this._writer.WriteAsync(data).ConfigureAwait(false);
+        await this._writer.FlushAsync().ConfigureAwait(false);
     }
 
     protected void Dispose(bool disposing)

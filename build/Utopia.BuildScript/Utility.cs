@@ -17,6 +17,11 @@ public static class Utility
         var env = Environment.GetEnvironmentVariable("PATH");
         string[] path;
 
+        if (env is null)
+        {
+            return null;
+        }
+
         if (OperatingSystem.IsWindows())
         {
             path = env.Split(';');

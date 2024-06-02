@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Utopia.Godot.CorePlugin;
 public partial class Plugin : IPlugin
 {
-    public event Action PluginDeactivated { add => throw new NotImplementedException(); remove => throw new NotImplementedException(); }
+    public event EventHandler PluginDeactivated { add => throw new NotImplementedException(); remove => throw new NotImplementedException(); }
 
     public void Dispose() => throw new NotImplementedException();
 }
