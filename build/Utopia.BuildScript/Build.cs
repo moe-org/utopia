@@ -51,7 +51,7 @@ class Build : NukeBuild
     Target Restore => _ => _
         .Executes(() =>
         {
-            DotNetTasks.DotNetRestore();
+            DotNetTasks.DotNetRestore(config => config.SetProjectFile(SlnPath));
             DotNetTasks.DotNetToolRestore();
         });
 
