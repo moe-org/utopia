@@ -88,7 +88,7 @@ class Build : NukeBuild
         .DependsOn(CompileDotnet)
         .Executes(() =>
         {
-            DotNetTasks.DotNetTest(config => config.SetProjectFile(SlnPath).SetNoBuild(true).SetNoRestore(true));
+            DotNetTasks.DotNetTest(config => config.SetProjectFile(SlnPath).SetNoBuild(true).SetNoRestore(true).SetConfiguration(Configuration.ToString()));
         });
 
     Target Release => _ => _
