@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +11,6 @@ using Moq;
 using Utopia.Core.Map;
 using Utopia.Server.Entity;
 using Utopia.Server.Map;
-using Zio.FileSystems;
 
 namespace Utopia.Test.Server;
 public class WorldTest
@@ -24,29 +22,37 @@ public class WorldTest
         generator.Setup(generator => generator.Generate(It.IsAny<IAreaLayer>())).Callback<IAreaLayer>(
             (layer) => layer.Stage = GenerationStage.Finish);
 
-        World world = new(new Core.Guuid("Test", "Default"), 2, 2, generator.Object, ".")
+        string tempDir = Directory.CreateTempSubdirectory().FullName;
+        try
         {
-            FileSystem = new MemoryFileSystem()
-        };
 
-        var yIndex = -world.YAreaNegativeCount * IArea.YSize;
-
-        while (yIndex != ((world.YAreaCount * IArea.YSize) - 1))
-        {
-            var xIndex = -world.XAreaNegativeCount * IArea.XSize;
-            while (xIndex != ((world.XAreaCount * IArea.XSize) - 1))
+            World world = new(new Core.Guuid("Test", "Default"), 2, 2, generator.Object, tempDir)
             {
-                // ensure the pos are the same
-                var pos = new Position(xIndex, yIndex, IArea.GroundZ);
-                Assert.True(world.TryGetBlock(pos, out IBlock? block));
-                Assert.True(world.TryGetArea(pos.ToFlat(), out IArea? area));
+            };
 
-                Assert.Equal(GenerationStage.Finish, area!.GetLayer(IArea.GroundZ).Stage);
-                Assert.Equal(pos, block!.Position.ToPos());
+            var yIndex = -world.YAreaNegativeCount * IArea.YSize;
 
-                xIndex++;
+            while (yIndex != ((world.YAreaCount * IArea.YSize) - 1))
+            {
+                var xIndex = -world.XAreaNegativeCount * IArea.XSize;
+                while (xIndex != ((world.XAreaCount * IArea.XSize) - 1))
+                {
+                    // ensure the pos are the same
+                    var pos = new Position(xIndex, yIndex, IArea.GroundZ);
+                    Assert.True(world.TryGetBlock(pos, out IBlock? block));
+                    Assert.True(world.TryGetArea(pos.ToFlat(), out IArea? area));
+
+                    Assert.Equal(GenerationStage.Finish, area!.GetLayer(IArea.GroundZ).Stage);
+                    Assert.Equal(pos, block!.Position.ToPos());
+
+                    xIndex++;
+                }
+                yIndex++;
             }
-            yIndex++;
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
         }
     }
 }

@@ -39,9 +39,8 @@ public class StandardLogicThread : ILogicThread
 {
     public StandardLogicThread(IEventBus eventBus, ILogger<StandardLogicThread> logger)
     {
-        eventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, cycleEvent) =>
+        eventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, cycle) =>
         {
-            var cycle = cycleEvent.Event;
             if (cycle is not { Cycle: LifeCycle.StartLogicThread, Order: LifeCycleOrder.Current })
             {
                 return;
@@ -50,9 +49,8 @@ public class StandardLogicThread : ILogicThread
             var logicT = new Thread(() =>
             {
                 // 注册关闭事件
-                eventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, stopCycleEvent) =>
+                eventBus.Register<LifeCycleEventArgs<LifeCycle>>((_, stopCycle) =>
                 {
-                    var stopCycle = stopCycleEvent.Event;
                     if (stopCycle is { Cycle: LifeCycle.Stop, Order: LifeCycleOrder.After })
                     {
                         Stop();

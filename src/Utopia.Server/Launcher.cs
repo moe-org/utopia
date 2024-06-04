@@ -32,8 +32,6 @@ using Utopia.Server.Logic;
 using Utopia.Server.Map;
 using Utopia.Server.Net;
 using Utopia.Server.Net.Handlers;
-using Zio;
-using Zio.FileSystems;
 using static Utopia.Server.Launcher;
 
 namespace Utopia.Server;
@@ -95,7 +93,7 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             .SingleInstance()
             .AsSelf();
         Builder
-            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new PhysicalFileSystem()))
+            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator("."))
             .SingleInstance()
             .As<IResourceLocator>();
         Builder
@@ -118,10 +116,6 @@ public class Launcher(Launcher.Options option) : Launcher<Launcher.Options>(opti
             RegisterType<TranslationManager>()
             .SingleInstance()
             .As<ITranslationManager>();
-        Builder
-            .RegisterInstance(new PhysicalFileSystem())
-            .SingleInstance()
-            .As<IFileSystem>();
         Builder
             .RegisterType<ErrorPacketHandle>()
             .AsSelf()

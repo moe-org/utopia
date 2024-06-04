@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using static Utopia.Server.Launcher;
 using Utopia.Core;
 using Autofac;
-using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,21 +20,22 @@ namespace Utopia.Server.Test;
 
 public class TestableLauncher : Launcher
 {
+
+    public ITestOutputHelper Output { get; init; }
+
     public static Options GetDefaultTestOption()
     {
         var opt = Options.Default();
-        opt.LogOption = new Core.Logging.LogManager.LogOption()
+        opt.LogOption = new LogManager.LogOption()
         {
             EnableLoggingSystem = false,
         };
         return opt;
     }
 
-    public readonly MockFileSystem FileSystem = new();
-
     private readonly object _lock = new();
 
-    private readonly List<(string logger, string message)> logs = [];
+    private readonly List<(string logger, string message)> _logs = [];
 
     public IEnumerable<(string logger, string message)> Logs
     {
@@ -44,33 +43,42 @@ public class TestableLauncher : Launcher
         {
             lock (_lock)
             {
-                return logs;
+                return _logs.ToArray();
             }
         }
     }
 
     public TestableLauncher(Options options, ITestOutputHelper output) : base(options)
     {
-        Builder!.RegisterInstance<IFileSystem>(FileSystem).SingleInstance();
+        Output = output;
+    }
+
+    /// <summary>
+    /// Do this after inject default dependences,
+    /// or the ILoggerFactory will be overwritten.
+    /// </summary>
+    public void InjectTestDependences()
+    {
         Builder!
             .Register((_) =>
-        {
-            ServiceCollection services = new();
-            services.AddLogging((logging) =>
+            {
+                ServiceCollection services = new();
+                services.AddLogging((logging) =>
                 {
-                    logging.AddXUnit(output);
+                    logging.AddXUnit(Output);
                     logging.AddProvider(new LogManager.WarppedLoggerProvider((name, msg) =>
                     {
                         lock (_lock)
                         {
-                            logs.Add((name, msg));
+                            _logs.Add((name, msg));
                         }
                     }));
                 }
-            );
-            return services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-        })
+                );
+                return services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
+            })
             .As<ILoggerFactory>()
             .SingleInstance();
+
     }
 }

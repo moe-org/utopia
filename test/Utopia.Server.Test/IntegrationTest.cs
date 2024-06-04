@@ -15,6 +15,7 @@ using Autofac;
 using SqlSugar;
 using Utopia.Server.Net;
 using System.Net.NetworkInformation;
+using Utopia.Core.IO;
 
 namespace Utopia.Server.Test;
 
@@ -42,6 +43,7 @@ public abstract class IntegrationTest : IDisposable
         if (disposing)
         {
             StopAndWait();
+            Directory.Delete(CurrentDir.FullName, true);
         }
 
         _disposed = true;
@@ -56,6 +58,8 @@ public abstract class IntegrationTest : IDisposable
     protected TestableLauncher Launcher { get; set; }
 
     protected Launcher.Options Options { get; set; }
+
+    protected DirectoryInfo CurrentDir { get; init; } = Directory.CreateTempSubdirectory();
 
     protected void StopAndWait()
     {
@@ -118,6 +122,14 @@ public abstract class IntegrationTest : IDisposable
 
         Launcher = new(Options, logger);
 
+        Launcher.InjectDefaultDependences();
+
+        // do this after inject default dependences
+        // or the ILoggerFactory will be overwritten
+        Launcher.InjectTestDependences();
+
+        Launcher.Builder!.RegisterInstance(new ResourceLocator(CurrentDir.FullName)).As<IResourceLocator>().SingleInstance();
+
         Launcher.UseKestrelForServer();
 
         Launcher.Builder!
@@ -136,6 +148,7 @@ public abstract class IntegrationTest : IDisposable
         AfterRun();
 
         // wait for start
-        Launcher.Container!.Resolve<MainThread>().StartTask.Wait();
+        var t = Task.WhenAny(Launcher.Container!.Resolve<MainThread>().StartTask, Launcher.MainTask!);
+        t.Wait();
     }
 }

@@ -2,7 +2,6 @@
 
 using System.Xml.Serialization;
 using Utopia.Core.IO;
-using Zio;
 using Range = SemanticVersioning.Range;
 using Version = SemanticVersioning.Version;
 
@@ -15,8 +14,6 @@ namespace Utopia.Core.Plugin;
 /// </summary>
 public class StandardPluginProvider : IPluginProvider
 {
-    public required IFileSystem FileSystem { get; init; }
-
     /// <summary>
     ///     从<see cref="IPluginResourceLocator.DefaultPluginManifestFile" />中读取并序列化为<see cref="Manifest" />.
     /// </summary>
@@ -33,7 +30,7 @@ public class StandardPluginProvider : IPluginProvider
 
     public IEnumerable<IUnloadedPlugin> GetAllPluginsFrom(string directory)
     {
-        var items = FileSystem.EnumerateDirectoryEntries(directory,
+        var items = Directory.GetFiles(directory,
                                        IPluginResourceLocator.DefaultPluginManifestFile,
                                        SearchOption.AllDirectories);
 
@@ -41,7 +38,7 @@ public class StandardPluginProvider : IPluginProvider
 
         foreach (var item in items)
         {
-            plugins.AddRange(GetPluginAtDirectory(item.Path.ToAbsolute().ToString())
+            plugins.AddRange(GetPluginAtDirectory(Path.GetFullPath(item))
                                                   ?? throw new InvalidOperationException(
                                                       $"failed to get directory name for plugin at {item}"));
         }
@@ -56,14 +53,14 @@ public class StandardPluginProvider : IPluginProvider
     protected Manifest? GetManifestFile(string directory)
     {
         // 查找清单文件
-        var manifestFile = UPath.Combine(directory, IPluginResourceLocator.DefaultPluginManifestFile);
+        var manifestFile = Path.Join(directory, IPluginResourceLocator.DefaultPluginManifestFile);
 
-        if (!FileSystem.FileExists(manifestFile)) return null;
+        if (!File.Exists(manifestFile)) return null;
 
         // 读取
         XmlSerializer serializer = new(typeof(Manifest));
 
-        using var fs = FileSystem.OpenFile(manifestFile, FileMode.Open, FileAccess.Read);
+        using var fs = File.Open(manifestFile, FileMode.Open, FileAccess.Read);
         var manifest = serializer.Deserialize<Manifest>(fs);
 
         return manifest;
@@ -100,7 +97,7 @@ public class StandardPluginProvider : IPluginProvider
                 Info = information,
                 TypeName = [item.TypeName],
                 Assemblies =
-                    item.Assemblies.Select(assembly => UPath.Combine(dir, assembly).ToAbsolute().ToString()).ToArray()
+                    item.Assemblies.Select(assembly => Path.GetFullPath(Path.Join(dir, assembly))).ToArray()
             });
         }
 

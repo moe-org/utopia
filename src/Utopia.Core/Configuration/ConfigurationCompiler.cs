@@ -23,7 +23,6 @@ using Utopia.Core.Security;
 using HarmonyLib;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Zio;
 
 namespace Utopia.Core.Configuration;
 
@@ -43,11 +42,8 @@ public class ConfigurationCompiler
 
     public readonly IList<MetadataReference> References = [];
 
-    private IFileSystem FileSystem { get; init; }
-
-    public ConfigurationCompiler(IFileSystem fileSystem)
+    public ConfigurationCompiler()
     {
-        FileSystem = fileSystem;
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
         // register current references
@@ -58,7 +54,7 @@ public class ConfigurationCompiler
                 continue;
             }
 
-            if (!fileSystem.FileExists(assembly.Location))
+            if (!File.Exists(assembly.Location))
             {
                 continue;
             }

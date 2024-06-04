@@ -17,12 +17,12 @@ public class LanguageIDTest
     [Fact]
     public void BadConstructTest()
     {
-        Assert.Throws<ArgumentException>(() => new LanguageID(string.Empty, "aa"));
+        Assert.Throws<FormatException>(() => new LanguageID(string.Empty, "aa"));
         Assert.Throws<ArgumentNullException>(() => new LanguageID(null!, "aa"));
-        Assert.Throws<ArgumentException>(() => new LanguageID("a", "aa"));
-        Assert.Throws<ArgumentException>(() => new LanguageID("a", "aaa"));
-        Assert.Throws<ArgumentException>(() => new LanguageID("aaa", "aaa"));
-        Assert.Throws<ArgumentException>(() => new LanguageID("aa", "aaa"));
+        Assert.Throws<FormatException>(() => new LanguageID("a", "aa"));
+        Assert.Throws<FormatException>(() => new LanguageID("a", "aaa"));
+        Assert.Throws<FormatException>(() => new LanguageID("aaa", "aaa"));
+        Assert.Throws<FormatException>(() => new LanguageID("aa", "aaa"));
     }
 
     [Fact]
@@ -36,11 +36,11 @@ public class LanguageIDTest
     [Fact]
     public void BadParseTest()
     {
-        Assert.Throws<ArgumentException>(() => LanguageID.Parse("aaa-aa"));
-        Assert.Throws<ArgumentException>(() => LanguageID.Parse("aa_a"));
-        Assert.Throws<ArgumentException>(() => LanguageID.Parse("aa+aa"));
-        Assert.Throws<ArgumentException>(() => LanguageID.Parse("aa=aa"));
-        Assert.Throws<ArgumentException>(() => LanguageID.Parse("aa  aa"));
+        Assert.Throws<FormatException>(() => LanguageID.Parse("aaa-aa"));
+        Assert.Throws<FormatException>(() => LanguageID.Parse("aa_a"));
+        Assert.Throws<FormatException>(() => LanguageID.Parse("aa+aa"));
+        Assert.Throws<FormatException>(() => LanguageID.Parse("aa=aa"));
+        Assert.Throws<FormatException>(() => LanguageID.Parse("aa  aa"));
     }
 
     [Fact]

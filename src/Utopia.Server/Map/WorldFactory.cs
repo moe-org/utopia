@@ -3,7 +3,6 @@
 // The file was licensed under the AGPL 3.0-or-later license
 
 using Utopia.Core;
-using Zio;
 
 namespace Utopia.Server.Map;
 
@@ -13,9 +12,6 @@ namespace Utopia.Server.Map;
 public class WorldFactory : IWorldFactory
 {
     public required ResourceLocator ResourceLocator { get; init; }
-
-    public required IFileSystem FileSystem { get; init; }
-
 
     public Guuid WorldType => new Guuid("Utopia", "DefaultWorld");
 
@@ -28,8 +24,5 @@ public class WorldFactory : IWorldFactory
     }
 
     public IWorld GenerateNewWorld() => new World(new Guuid("Utopia", "NewWorld"), 4, 4, _generator,
-                                                  UPath.Combine(ResourceLocator.WorldsDirectory, "NewWorld").ToString())
-    {
-        FileSystem = FileSystem
-    };
+                                                  Path.Join(ResourceLocator.WorldsDirectory, "NewWorld").ToString());
 }

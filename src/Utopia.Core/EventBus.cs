@@ -10,19 +10,19 @@ public class EventBus : IEventBus
 {
     private readonly ConcurrentDictionary<Type, (object, object)> _handlers = new();
 
-    private readonly WeakThreadSafeEventSource<EventBusEvent> _source = new();
+    private readonly WeakThreadSafeEventSource<EventArgs> _source = new();
 
-    public event EventHandler<EventBusEvent> EventFired
+    public event EventHandler<EventArgs> EventFired
     {
         add => this._source.Register(value);
         remove => this._source.Unregister(value);
     }
 
-    private (List<WeakReference<EventHandler<EventBusEvent<T>>>> handlers, object @lock) _Get<T>() =>
-        ((List<WeakReference<EventHandler<EventBusEvent<T>>>>, object))_handlers.GetOrAdd
-            (typeof(T), (t) => { return new(new List<WeakReference<EventHandler<EventBusEvent<T>>>>(), new object()); });
+    private (List<WeakReference<EventHandler<T>>> handlers, object @lock) _Get<T>() =>
+        ((List<WeakReference<EventHandler<T>>>, object))_handlers.GetOrAdd
+            (typeof(T), (t) => { return new(new List<WeakReference<EventHandler<T>>>(), new object()); });
 
-    public void Clear<T>()
+    public void Clear<T>() where T : EventArgs
     {
         var get = _Get<T>();
         lock (get.@lock)
@@ -31,13 +31,13 @@ public class EventBus : IEventBus
         }
     }
 
-    public void Fire<T>(object? source, T @event)
+    public void Fire<T>(object? source, T @event) where T : EventArgs
     {
         ArgumentNullException.ThrowIfNull(@event);
-        this._source.Fire(source, new(@event), false);
+        this._source.Fire(source, @event, false);
 
         var get = _Get<T>();
-        List<WeakReference<EventHandler<EventBusEvent<T>>>> shouldRemove = new(get.handlers.Count);
+        List<WeakReference<EventHandler<T>>> shouldRemove = new(get.handlers.Count);
 
         lock (get.@lock)
         {
@@ -46,7 +46,7 @@ public class EventBus : IEventBus
             {
                 if (handle.TryGetTarget(out var a))
                 {
-                    a.Invoke(source, new(@event));
+                    a.Invoke(source, @event);
                 }
                 else
                 {
@@ -62,16 +62,16 @@ public class EventBus : IEventBus
         }
     }
 
-    public void Register<T>(EventHandler<EventBusEvent<T>> handler)
+    public void Register<T>(EventHandler<T> handler) where T : EventArgs
     {
         var get = _Get<T>();
         lock (get.@lock)
         {
-            get.handlers.Add(new WeakReference<EventHandler<EventBusEvent<T>>>(handler));
+            get.handlers.Add(new WeakReference<EventHandler<T>>(handler));
         }
     }
 
-    public void Unregister<T>(EventHandler<EventBusEvent<T>> handler)
+    public void Unregister<T>(EventHandler<T> handler) where T : EventArgs
     {
         var get = _Get<T>();
         lock (get.@lock)

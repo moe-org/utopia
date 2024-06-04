@@ -4,12 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core.Configuration;
-using Zio.FileSystems;
 
 namespace Utopia.Core.Test;
 
@@ -30,7 +28,7 @@ public class Configuration
     [Fact]
     public async Task ConfigurationRunTest()
     {
-        ConfigurationCompiler compiler = new(new PhysicalFileSystem());
+        ConfigurationCompiler compiler = new();
 
         Option opt = new();
 
@@ -48,11 +46,10 @@ public class Configuration
         Assert.True(opt.Accessed);
     }
 
-
     [Fact]
     public async Task ConfigurationImportAndRunTest()
     {
-        ConfigurationCompiler compiler = new(new PhysicalFileSystem());
+        ConfigurationCompiler compiler = new();
 
         Option opt = new();
 

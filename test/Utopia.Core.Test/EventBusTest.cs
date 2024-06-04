@@ -6,26 +6,32 @@ namespace Utopia.Core.Test;
 
 public class EventBusTest
 {
+    private class TestEvent(int count) : EventArgs
+    {
+        public int Count { get; } = count;
+    }
+
     [Fact]
     public void EventBusFireTest()
     {
         EventBus bus = new();
         int toggle = 0;
 
-        bus.Register<int>((s, i) =>
+        bus.Register<TestEvent>((s, i) =>
         {
-            Assert.Same(this, s);
-            Assert.Equal(1, i.Event);
+            Assert.Null(s);
+            Assert.Equal(1, i.Count);
             toggle++;
         });
         bus.EventFired += (s, i) =>
         {
-            Assert.Same(this, s);
-            Assert.Equal(1, i.Event);
+            Assert.Null(s);
+            Assert.IsType<TestEvent>(i);
+            Assert.Equal(1, ((TestEvent)i).Count);
             toggle++;
         };
 
-        bus.Fire(this, 1);
+        bus.Fire(null, new TestEvent(1));
 
         Assert.Equal(2, toggle);
     }
@@ -36,21 +42,21 @@ public class EventBusTest
         EventBus bus = new();
         int toggle = 0;
 
-        EventHandler<EventBusEvent<int>> lambda = (object? s, EventBusEvent<int> i) =>
+        EventHandler<TestEvent> lambda = (object? s, TestEvent i) =>
         {
             Assert.Same(this, s);
-            Assert.Equal(1, i.Event);
+            Assert.Equal(1, i.Count);
             toggle++;
         };
 
         bus.Register(lambda);
         bus.EventFired += (s, i) =>
         {
-            lambda(s, (i as EventBusEvent<int>)!);
+            lambda(s, (i as TestEvent)!);
         };
         bus.Unregister(lambda);
 
-        bus.Fire(this, 1);
+        bus.Fire(this, new TestEvent(1));
         Assert.Equal(1, toggle);
     }
 }

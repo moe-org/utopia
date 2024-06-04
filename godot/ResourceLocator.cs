@@ -4,18 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utopia.Core.IO;
-using Zio;
 
 namespace Utopia.Godot;
-public class ResourceLocator(string root, IFileSystem fileSystem) : Core.IO.ResourceLocator
+public class ResourceLocator(string root) : Core.IO.ResourceLocator
 {
-    public override IFileSystem FileSystem => fileSystem;
-
-    public override string RootDirectory => ((UPath)root).ToAbsolute().ToString();
+    public override string RootDirectory => Path.GetFullPath(root);
 
     public override string? ServerDirectory => IResourceLocator.DefaultServerDirectoryName;
 }

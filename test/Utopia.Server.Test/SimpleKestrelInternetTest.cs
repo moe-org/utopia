@@ -40,9 +40,10 @@ public class SimpleKestrelInternetTest(ITestOutputHelper output) : IntegrationTe
         socket.Connect(new IPAddress(new byte[] { 127, 0, 0, 1 }), Options.Port);
 
         // construct error packet
+        string errorMessage = "this is a test error packet";
         var errorPacket = new ErrorPacket()
         {
-            ErrorMessage = "this is a test error packet"
+            ErrorMessage = errorMessage
         };
 
         var obj = (new MemoryPackPacketFormatter<ErrorPacket>()).ToPacket(ErrorPacket.PacketID, errorPacket);
@@ -69,9 +70,9 @@ public class SimpleKestrelInternetTest(ITestOutputHelper output) : IntegrationTe
             socket.Send((byte[])[0]);
         });
 
-        StopAndWait();
+        // check the log
+        Assert.Contains(Launcher.Logs.Select((log) => log.message), (s) => s.Contains(errorMessage));
 
-        // check the log 
-        Assert.Contains(Launcher.Logs.ToArray().Select((log) => log.message), (s) => s.Contains("this is a test error packet"));
+        StopAndWait();
     }
 }

@@ -7,14 +7,11 @@ using Utopia.Core;
 using Utopia.Core.IO;
 using Utopia.Core.Map;
 using Utopia.Server.Logic;
-using Zio;
 
 namespace Utopia.Server.Map;
 
 public class World : IWorld
 {
-    public required IFileSystem FileSystem { get; init; }
-
     private readonly Area[][] _areas;
 
     private readonly string _path;
@@ -144,6 +141,6 @@ public class World : IWorld
                 StreamUtility.WriteDataWithLength(stream, y.SaveAs()).Wait();
             }
         }
-        FileSystem.WriteAllBytes(UPath.Combine(_path, "data.bin"), stream.ToArray());
+        File.WriteAllBytes(Path.Join(_path, "data.bin"), stream.ToArray());
     }
 }

@@ -27,7 +27,6 @@ public struct WeakThreadSafeEventSource<T>() where T : EventArgs
 
     public IEnumerable<Exception> Fire(object? source, T @event, bool ignoreError = false)
     {
-        ArgumentNullException.ThrowIfNull(source);
         var taken = false;
         try
         {

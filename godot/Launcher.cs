@@ -21,8 +21,6 @@ using Utopia.Core;
 using Utopia.Core.IO;
 using Utopia.Core.Plugin;
 using Utopia.Core.Translation;
-using Zio;
-using Zio.FileSystems;
 using static Utopia.Godot.Launcher;
 using IContainer = Autofac.IContainer;
 
@@ -55,7 +53,7 @@ public class Launcher(LaunchOptions options) : Launcher<LaunchOptions>(options)
             .SingleInstance()
             .AsSelf();
         Builder!
-            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator(".", new PhysicalFileSystem()))
+            .RegisterInstance(Option.ResourceLocator ?? new ResourceLocator("."))
             .SingleInstance()
             .As<IResourceLocator>();
         Builder
@@ -78,10 +76,6 @@ public class Launcher(LaunchOptions options) : Launcher<LaunchOptions>(options)
             RegisterType<TranslationManager>()
             .SingleInstance()
             .As<ITranslationManager>();
-        Builder
-            .RegisterInstance(new PhysicalFileSystem())
-            .SingleInstance()
-            .As<IFileSystem>();
         // kestrel server
         Builder
             .RegisterType<KestrelServerOptions>()
